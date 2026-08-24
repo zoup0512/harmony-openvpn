@@ -1,0 +1,8 @@
+{
+  "modelVersion": "6.1.0",
+  "description": "OpenVPN client for HarmonyOS, ported from ics-openvpn",
+  "dependencies": {
+  },
+  "devDependencies": {
+  }
+}

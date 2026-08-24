@@ -1,0 +1,21 @@
+# ninja log v6
+9	105	8092599139171649	CMakeFiles/ovpnexec.dir/D_/workspace/My/harmony/harmony-openvpn/native/third_party/lz4/lib/lz4file.c.o	49a96b24b8da5167
+6	105	8092600763123577	CMakeFiles/ovpnexec.dir/D_/workspace/My/harmony/harmony-openvpn/native/third_party/openvpn3/openvpn/openssl/xkey/xkey_provider.c.o	d814900d533d8e81
+7	90	8092600763133978	CMakeFiles/ovpnexec.dir/D_/workspace/My/harmony/harmony-openvpn/native/third_party/openvpn3/openvpn/openssl/xkey/xkey_helper.c.o	eb0845c6eeb26334
+10	137	8092599139184872	CMakeFiles/ovpnexec.dir/D_/workspace/My/harmony/harmony-openvpn/native/third_party/lz4/lib/lz4frame.c.o	859f3990b25c3765
+13	137	8092599139211834	CMakeFiles/ovpnexec.dir/D_/workspace/My/harmony/harmony-openvpn/native/third_party/lz4/lib/xxhash.c.o	e7e92cae43cb1c30
+11	211	8092599139201373	CMakeFiles/ovpnexec.dir/D_/workspace/My/harmony/harmony-openvpn/native/third_party/lz4/lib/lz4hc.c.o	57ddee179ac2f5d5
+7	524	8092599139161109	CMakeFiles/ovpnexec.dir/D_/workspace/My/harmony/harmony-openvpn/native/third_party/lz4/lib/lz4.c.o	ec80717acaf1a758
+5	2017	8092599139129458	CMakeFiles/ovpnexec.dir/D_/workspace/My/harmony/harmony-openvpn/native/third_party/openvpn3/openvpn/crypto/data_epoch.cpp.o	5a90d87ba66c876e
+8	56	8092600990018623	CMakeFiles/ovpnexec.dir/D_/workspace/My/harmony/harmony-openvpn/native/third_party/lz4/lib/lz4file.c.o	48fe026667f1e76c
+9	91	8092600990029231	CMakeFiles/ovpnexec.dir/D_/workspace/My/harmony/harmony-openvpn/native/third_party/lz4/lib/lz4frame.c.o	ea593db53d216a8c
+6	91	8092600989997567	CMakeFiles/ovpnexec.dir/D_/workspace/My/harmony/harmony-openvpn/native/third_party/openvpn3/openvpn/openssl/xkey/xkey_helper.c.o	32cdc68a95051346
+11	93	8092600990045726	CMakeFiles/ovpnexec.dir/D_/workspace/My/harmony/harmony-openvpn/native/third_party/lz4/lib/xxhash.c.o	10aa5303709b4e67
+5	111	8092600989986812	CMakeFiles/ovpnexec.dir/D_/workspace/My/harmony/harmony-openvpn/native/third_party/openvpn3/openvpn/openssl/xkey/xkey_provider.c.o	9ec3960009170209
+10	187	8092600990039641	CMakeFiles/ovpnexec.dir/D_/workspace/My/harmony/harmony-openvpn/native/third_party/lz4/lib/lz4hc.c.o	5ea7bb06219f603
+7	503	8092600990008142	CMakeFiles/ovpnexec.dir/D_/workspace/My/harmony/harmony-openvpn/native/third_party/lz4/lib/lz4.c.o	dc67043b76a09a89
+4	8889	8092600989976310	CMakeFiles/ovpnexec.dir/D_/workspace/My/harmony/harmony-openvpn/native/third_party/openvpn3/client/ovpncli.cpp.o	6f0b53b793743ee7
+8	1761	8092602904632216	CMakeFiles/ovpnexec.dir/ovpn_napi.cpp.o	52453b69a89bdc63
+1761	1922	8092602922165439	D:/workspace/My/harmony/harmony-openvpn/entry/build/default/intermediates/cmake/default/obj/arm64-v8a/libovpnexec.so	aa4164e38b8c67ca
+9	1863	8092606409075104	CMakeFiles/ovpnexec.dir/ovpn_napi.cpp.o	52453b69a89bdc63
+1864	2032	8092606427617994	D:/workspace/My/harmony/harmony-openvpn/entry/build/default/intermediates/cmake/default/obj/arm64-v8a/libovpnexec.so	aa4164e38b8c67ca

@@ -1,0 +1,3 @@
+D:/workspace/My/harmony/harmony-openvpn/entry/.cxx/default/default/debug/arm64-v8a/CMakeFiles/ovpnexec.dir
+D:/workspace/My/harmony/harmony-openvpn/entry/.cxx/default/default/debug/arm64-v8a/CMakeFiles/edit_cache.dir
+D:/workspace/My/harmony/harmony-openvpn/entry/.cxx/default/default/debug/arm64-v8a/CMakeFiles/rebuild_cache.dir

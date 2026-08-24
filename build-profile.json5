@@ -1,0 +1,50 @@
+{
+  "app": {
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "C:\\Users\\vyron\\.ohos\\config\\default_harmony-openvpn__8t99ylO3gYqML5jU2YB9OzL-h9gcCjFV4GdR6DMBoc=.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001B01663F2CCF8EF03AE851D51CB336FE225228C633EFBBE4866F2697AA30A602842742DC3C541745",
+          "profile": "C:\\Users\\vyron\\.ohos\\config\\default_harmony-openvpn__8t99ylO3gYqML5jU2YB9OzL-h9gcCjFV4GdR6DMBoc=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "C:\\Users\\vyron\\.ohos\\config\\default_harmony-openvpn__8t99ylO3gYqML5jU2YB9OzL-h9gcCjFV4GdR6DMBoc=.p12",
+          "storePassword": "0000001B9C4840F1CE966826CB44D78919AFC39B16819D41425C8002D25DC89B185B580EAAA0F25BE946C5"
+        }
+      }
+    ],
+    "products": [
+      {
+        "name": "default",
+        "signingConfig": "default",
+        "compatibleSdkVersion": "6.1.0(23)",
+        "targetSdkVersion": "6.1.0(23)",
+        "runtimeOS": "HarmonyOS"
+      }
+    ],
+    "buildModeSet": [
+      {
+        "name": "debug"
+      },
+      {
+        "name": "release"
+      }
+    ]
+  },
+  "modules": [
+    {
+      "name": "entry",
+      "srcPath": "./entry",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    }
+  ]
+}

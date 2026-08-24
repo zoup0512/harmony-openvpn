@@ -1,0 +1,1384 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "OpenVPN 客户端"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "OpenVPN 客户端"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "OpenVPN"
+    },
+    {
+      "name": "app_name",
+      "value": "OpenVPN"
+    },
+    {
+      "name": "vpn_list_title",
+      "value": "VPN 列表"
+    },
+    {
+      "name": "graph",
+      "value": "图表"
+    },
+    {
+      "name": "generalsettings",
+      "value": "设置"
+    },
+    {
+      "name": "faq",
+      "value": "常见问题"
+    },
+    {
+      "name": "about",
+      "value": "关于"
+    },
+    {
+      "name": "ok",
+      "value": "确定"
+    },
+    {
+      "name": "cancel",
+      "value": "取消"
+    },
+    {
+      "name": "yes",
+      "value": "是"
+    },
+    {
+      "name": "no",
+      "value": "否"
+    },
+    {
+      "name": "delete",
+      "value": "删除"
+    },
+    {
+      "name": "keep",
+      "value": "保留"
+    },
+    {
+      "name": "select",
+      "value": "选择"
+    },
+    {
+      "name": "clear",
+      "value": "清除"
+    },
+    {
+      "name": "sorted_az",
+      "value": "配置文件按名称排序"
+    },
+    {
+      "name": "sorted_lru",
+      "value": "配置文件按最近使用排序"
+    },
+    {
+      "name": "menu_add_profile",
+      "value": "添加配置文件"
+    },
+    {
+      "name": "add_profile_name_prompt",
+      "value": "输入新配置文件的名称"
+    },
+    {
+      "name": "name_of_the_vpn_profile",
+      "value": "VPN 配置文件的名称"
+    },
+    {
+      "name": "menu_import_short",
+      "value": "导入"
+    },
+    {
+      "name": "duplicate_profile_name",
+      "value": "请输入唯一的配置文件名称"
+    },
+    {
+      "name": "no_vpn_profiles_defined",
+      "value": "没有定义 VPN 配置文件。"
+    },
+    {
+      "name": "openvpn_is_no_free_vpn",
+      "value": "使用此应用需要支持 OpenVPN 的 VPN 提供商/VPN 网关（通常由您的雇主提供）。详情请查看 https://community.openvpn.net/。"
+    },
+    {
+      "name": "add_new_vpn_hint",
+      "value": "使用 + 图标添加新的 VPN"
+    },
+    {
+      "name": "vpn_import_hint",
+      "value": "使用导入图标导入现有的 (.ovpn 或 .conf) 配置文件。"
+    },
+    {
+      "name": "faq_hint",
+      "value": "请务必查看常见问题，其中有快速入门指南。"
+    },
+    {
+      "name": "missing_notification_permission",
+      "value": "缺少通知权限。该权限用于显示 VPN 状态以及在需要用户交互时（例如多因素认证）通知您。"
+    },
+    {
+      "name": "configure_the_vpn",
+      "value": "配置 VPN"
+    },
+    {
+      "name": "title_cancel",
+      "value": "取消确认"
+    },
+    {
+      "name": "cancel_connection_query",
+      "value": "断开已连接的 VPN/取消连接尝试？"
+    },
+    {
+      "name": "cancel_connection",
+      "value": "断开"
+    },
+    {
+      "name": "config_error_found",
+      "value": "发现配置错误"
+    },
+    {
+      "name": "state_disconnected",
+      "value": "已断开"
+    },
+    {
+      "name": "copy_of_profile",
+      "value": "%s 的副本"
+    },
+    {
+      "name": "duplicate_vpn",
+      "value": "已复制为 %s"
+    },
+    {
+      "name": "ca_title",
+      "value": "CA 证书"
+    },
+    {
+      "name": "client_certificate_title",
+      "value": "客户端证书"
+    },
+    {
+      "name": "client_key_title",
+      "value": "客户端证书密钥"
+    },
+    {
+      "name": "client_pkcs12_title",
+      "value": "PKCS12 文件"
+    },
+    {
+      "name": "crl_title",
+      "value": "证书吊销列表（可选）"
+    },
+    {
+      "name": "inline_file_data",
+      "value": "[[内联文件数据]]"
+    },
+    {
+      "name": "imported_from_file",
+      "value": "[导入自：%s]"
+    },
+    {
+      "name": "no_data",
+      "value": "无数据"
+    },
+    {
+      "name": "import_error_message",
+      "value": "导入配置文件时发生错误"
+    },
+    {
+      "name": "error_importing_file",
+      "value": "导入文件错误"
+    },
+    {
+      "name": "pkcs12_file_encryption_key",
+      "value": "PKCS12 文件加密密钥"
+    },
+    {
+      "name": "private_key_password",
+      "value": "私钥密码"
+    },
+    {
+      "name": "password",
+      "value": "密码"
+    },
+    {
+      "name": "pw_query_hint",
+      "value": "（留空表示按需询问）"
+    },
+    {
+      "name": "fingerprint",
+      "value": "（输入服务器证书的 SHA256 指纹）"
+    },
+    {
+      "name": "profilename",
+      "value": "配置文件名称"
+    },
+    {
+      "name": "compat_mode_label",
+      "value": "兼容模式"
+    },
+    {
+      "name": "loadossllegacy",
+      "value": "加载 OpenSSL 旧版提供程序"
+    },
+    {
+      "name": "useLZO",
+      "value": "LZO 压缩"
+    },
+    {
+      "name": "vpn_type",
+      "value": "类型"
+    },
+    {
+      "name": "auth_username",
+      "value": "用户名（留空表示没有身份验证）"
+    },
+    {
+      "name": "auth_pwquery",
+      "value": "密码"
+    },
+    {
+      "name": "auth_failed_behaviour",
+      "value": "AUTH_FAILED 时的行为"
+    },
+    {
+      "name": "check_peer_fingerprint",
+      "value": "检查对端证书指纹"
+    },
+    {
+      "name": "static_keys_info",
+      "value": "在静态配置中，TLS Auth 密钥将被用作静态密钥"
+    },
+    {
+      "name": "client_no_certificate",
+      "value": "没有证书"
+    },
+    {
+      "name": "keystore_not_supported",
+      "value": "此平台上没有系统密钥库证书。请使用基于文件（证书/PKCS12）的身份验证。"
+    },
+    {
+      "name": "external_authenticator",
+      "value": "外部认证供应商"
+    },
+    {
+      "name": "extauth_not_supported",
+      "value": "此平台不支持外部认证应用。"
+    },
+    {
+      "name": "extracahint",
+      "value": "CA 证书通常由系统密钥库返回。仅当密钥库未返回时才需要设置。"
+    },
+    {
+      "name": "vpn_type_certificates",
+      "value": "证书"
+    },
+    {
+      "name": "vpn_type_pkcs12",
+      "value": "PKCS12 加密文件"
+    },
+    {
+      "name": "vpn_type_keystore",
+      "value": "系统证书"
+    },
+    {
+      "name": "vpn_type_userpass",
+      "value": "用户名/密码"
+    },
+    {
+      "name": "vpn_type_statickeys",
+      "value": "静态密钥"
+    },
+    {
+      "name": "vpn_type_userpass_certificates",
+      "value": "用户名/密码 + 证书"
+    },
+    {
+      "name": "vpn_type_userpass_pkcs12",
+      "value": "用户名/密码 + PKCS12"
+    },
+    {
+      "name": "vpn_type_userpass_keystore",
+      "value": "用户名/密码 + 系统证书"
+    },
+    {
+      "name": "vpn_type_external_app",
+      "value": "外部认证供应商"
+    },
+    {
+      "name": "compat_mode_modern",
+      "value": "较新 OpenVPN 版本默认值"
+    },
+    {
+      "name": "compat_mode_25",
+      "value": "OpenVPN 2.5.x 对端"
+    },
+    {
+      "name": "compat_mode_24",
+      "value": "OpenVPN 2.4.x 对端"
+    },
+    {
+      "name": "compat_mode_23",
+      "value": "OpenVPN 2.3.x 和更旧版本的对端"
+    },
+    {
+      "name": "auth_retry_disconnect_forget",
+      "value": "断开，忘记密码"
+    },
+    {
+      "name": "auth_retry_disconnect_keep",
+      "value": "断开，保存密码"
+    },
+    {
+      "name": "auth_retry_ignore_retry",
+      "value": "忽略，重试"
+    },
+    {
+      "name": "server_list",
+      "value": "服务器列表"
+    },
+    {
+      "name": "remote_random",
+      "value": "连接时随机使用连接条目"
+    },
+    {
+      "name": "remote_no_server_selected",
+      "value": "您需要定义并启用至少一个远程服务器。"
+    },
+    {
+      "name": "query_delete_remote",
+      "value": "移除远程服务器条目？"
+    },
+    {
+      "name": "address",
+      "value": "服务器地址："
+    },
+    {
+      "name": "port",
+      "value": "服务器端口："
+    },
+    {
+      "name": "enabled_connection_entry",
+      "value": "启用"
+    },
+    {
+      "name": "protocol",
+      "value": "协议"
+    },
+    {
+      "name": "udp_proto",
+      "value": "UDP"
+    },
+    {
+      "name": "tcp_proto",
+      "value": "TCP"
+    },
+    {
+      "name": "proxy",
+      "value": "代理"
+    },
+    {
+      "name": "Use_no_proxy",
+      "value": "无"
+    },
+    {
+      "name": "proxy_socks5",
+      "value": "Socksv5"
+    },
+    {
+      "name": "tor_orbot",
+      "value": "Tor (Orbot)"
+    },
+    {
+      "name": "enableproxyauth",
+      "value": "启用代理身份验证"
+    },
+    {
+      "name": "proxy_auth_username",
+      "value": "用户名"
+    },
+    {
+      "name": "connect_timeout",
+      "value": "连接超时"
+    },
+    {
+      "name": "custom_connection_options",
+      "value": "自定义选项"
+    },
+    {
+      "name": "custom_connection_options_warng",
+      "value": "指定连接特定的自定义选项。请谨慎使用"
+    },
+    {
+      "name": "add_remote",
+      "value": "添加新的远程服务器"
+    },
+    {
+      "name": "ipdns",
+      "value": "IP 和 DNS"
+    },
+    {
+      "name": "basic",
+      "value": "基本设置"
+    },
+    {
+      "name": "use_pull",
+      "value": "拉取设置"
+    },
+    {
+      "name": "pull_on_summary",
+      "value": "从服务器请求 IP 地址、路由和计时选项。"
+    },
+    {
+      "name": "pull_off_summary",
+      "value": "不会从服务器请求任何信息。需要在下方指定设置。"
+    },
+    {
+      "name": "ipv4_address",
+      "value": "IPv4 地址"
+    },
+    {
+      "name": "ipv4_dialog_title",
+      "value": "以 CIDR 格式输入 IPv4 地址/子网掩码（例如 1.2.3.4/24）"
+    },
+    {
+      "name": "ipv6_address",
+      "value": "IPv6 地址"
+    },
+    {
+      "name": "ipv6_dialog_tile",
+      "value": "以 CIDR 格式输入 IPv6 地址/子网掩码（例如 2000:dd::23/64）"
+    },
+    {
+      "name": "no_bind",
+      "value": "无本地绑定"
+    },
+    {
+      "name": "nobind_summary",
+      "value": "不绑定到本地地址和端口"
+    },
+    {
+      "name": "dns",
+      "value": "DNS"
+    },
+    {
+      "name": "override_dns",
+      "value": "覆盖服务器的 DNS 设置"
+    },
+    {
+      "name": "dns_override_summary",
+      "value": "使用您自己的 DNS 服务器"
+    },
+    {
+      "name": "searchdomain",
+      "value": "搜索域"
+    },
+    {
+      "name": "dns_server",
+      "value": "DNS 服务器"
+    },
+    {
+      "name": "dns1_summary",
+      "value": "要使用的 DNS 服务器。"
+    },
+    {
+      "name": "backup_dns",
+      "value": "备用 DNS 服务器"
+    },
+    {
+      "name": "secondary_dns_message",
+      "value": "要使用的辅助 DNS 服务器"
+    },
+    {
+      "name": "dns_not_set",
+      "value": "（未设置）"
+    },
+    {
+      "name": "routing",
+      "value": "路由"
+    },
+    {
+      "name": "ignored_pushed_routes",
+      "value": "忽略推送的路由"
+    },
+    {
+      "name": "ignore_routes_summary",
+      "value": "忽略服务器推送的路由。"
+    },
+    {
+      "name": "blocklocal_title",
+      "value": "本地网络绕过 VPN"
+    },
+    {
+      "name": "blocklocal_summary",
+      "value": "直接连接到本地接口的网络不会通过 VPN 路由。"
+    },
+    {
+      "name": "title_block_address_families",
+      "value": "阻止 VPN 未使用的 IPv6（或 IPv4）"
+    },
+    {
+      "name": "summary_block_address_families",
+      "value": "如果 VPN 未设置任何 IPv4 或 IPv6 地址，此选项将指示系统不允许相应协议（IPv4/IPv6）。"
+    },
+    {
+      "name": "use_default_title",
+      "value": "使用默认路由"
+    },
+    {
+      "name": "default_route_summary",
+      "value": "将所有流量重定向到 VPN"
+    },
+    {
+      "name": "custom_routes_title",
+      "value": "自定义路由"
+    },
+    {
+      "name": "custom_route_message",
+      "value": "以 CIDR 格式输入自定义路由（例如 1.2.3.4/24）。多条路由用,分隔"
+    },
+    {
+      "name": "custom_routes_title_excluded",
+      "value": "排除的网络"
+    },
+    {
+      "name": "custom_route_message_excluded",
+      "value": "以 CIDR 格式输入排除的网络。多个网络用,分隔"
+    },
+    {
+      "name": "settings_auth",
+      "value": "认证/加密"
+    },
+    {
+      "name": "tls_settings",
+      "value": "TLS 设置"
+    },
+    {
+      "name": "tls_profile",
+      "value": "TLS 安全配置"
+    },
+    {
+      "name": "tls_profile_insecure",
+      "value": "不安全（不推荐，允许不安全的加密）"
+    },
+    {
+      "name": "tls_profile_legacy",
+      "value": "旧式（默认）"
+    },
+    {
+      "name": "tls_profile_preferred",
+      "value": "首选（推荐但兼容性有限）"
+    },
+    {
+      "name": "tls_profile_suiteb",
+      "value": "Suite B（仅限 NIST 批准的椭圆曲线）"
+    },
+    {
+      "name": "check_remote_tlscert_title",
+      "value": "需要 TLS 服务器证书"
+    },
+    {
+      "name": "check_remote_tlscert",
+      "value": "检查服务器是否使用带 TLS 服务器扩展的证书 (--remote-cert-tls server)"
+    },
+    {
+      "name": "remote_tlscn_check_title",
+      "value": "证书主机名检查"
+    },
+    {
+      "name": "remote_tlscn_check_summary",
+      "value": "检查远程服务器证书的主题 DN"
+    },
+    {
+      "name": "enter_tlscn_title",
+      "value": "远程证书主题"
+    },
+    {
+      "name": "enter_tlscn_dialog",
+      "value": "输入远程服务器证书的 DN。DN 通过 --verify-x509-name 检查。"
+    },
+    {
+      "name": "no_remote_defined",
+      "value": "未定义远程服务器"
+    },
+    {
+      "name": "x509_username_field",
+      "value": "X509 用户名字段"
+    },
+    {
+      "name": "x509_username_field_summary",
+      "value": "X.509 证书主题中用作用户名的字段（默认为 CN）。"
+    },
+    {
+      "name": "complete_dn",
+      "value": "完整 DN"
+    },
+    {
+      "name": "rdn",
+      "value": "RDN（公用名）"
+    },
+    {
+      "name": "rdn_prefix",
+      "value": "RDN 前缀"
+    },
+    {
+      "name": "tls_remote_deprecated",
+      "value": "tls-remote（已废弃）"
+    },
+    {
+      "name": "tls_authentication",
+      "value": "TLS 认证/加密"
+    },
+    {
+      "name": "useTLSAuth",
+      "value": "使用控制通道认证/加密"
+    },
+    {
+      "name": "tls_key_auth",
+      "value": "为 OpenVPN 控制通道启用额外的认证/加密层"
+    },
+    {
+      "name": "tls_auth_file",
+      "value": "TLS Auth/TLS 加密文件"
+    },
+    {
+      "name": "tls_direction",
+      "value": "认证/加密方式"
+    },
+    {
+      "name": "tls_direction_auth_0",
+      "value": "tls-auth - --direction 0"
+    },
+    {
+      "name": "tls_direction_auth_1",
+      "value": "tls-auth - --direction 1"
+    },
+    {
+      "name": "tls_direction_none",
+      "value": "tls-auth --direction 未指定"
+    },
+    {
+      "name": "tls_direction_tlscrypt",
+      "value": "加密方式（--tls-crypt）"
+    },
+    {
+      "name": "tls_direction_tlscrypt2",
+      "value": "TLS 加密 第二版"
+    },
+    {
+      "name": "encryption",
+      "value": "加密"
+    },
+    {
+      "name": "encryption_cipher",
+      "value": "加密密码"
+    },
+    {
+      "name": "chipher_dialog_message",
+      "value": "输入 OpenVPN 使用的数据加密算法，以 : 分隔 (--data-ciphers)。留空使用默认值 AES-256-GCM:AES-128-GCM:CHACHA20-POLY1305。"
+    },
+    {
+      "name": "packet_auth",
+      "value": "数据包认证"
+    },
+    {
+      "name": "auth_dialog_message",
+      "value": "输入 OpenVPN 使用的认证摘要。留空使用默认摘要。"
+    },
+    {
+      "name": "advanced",
+      "value": "高级设置"
+    },
+    {
+      "name": "client_behaviour",
+      "value": "客户端行为"
+    },
+    {
+      "name": "persistent_tun_title",
+      "value": "持久 tun"
+    },
+    {
+      "name": "persisttun_summary",
+      "value": "OpenVPN 重连时不回退到无 VPN 连接状态。"
+    },
+    {
+      "name": "pushpeerinfo",
+      "value": "推送对端信息"
+    },
+    {
+      "name": "pushpeerinfosummary",
+      "value": "向服务器发送额外信息，例如 SSL 版本和平台版本"
+    },
+    {
+      "name": "random_host_prefix",
+      "value": "随机主机名前缀"
+    },
+    {
+      "name": "random_host_summary",
+      "value": "在主机名前添加 6 个随机字符"
+    },
+    {
+      "name": "float_title",
+      "value": "允许浮动服务器"
+    },
+    {
+      "name": "float_summary",
+      "value": "允许来自任意 IP 的已认证数据包"
+    },
+    {
+      "name": "payload_options",
+      "value": "载荷选项"
+    },
+    {
+      "name": "mssfix_checkbox",
+      "value": "覆盖 TCP 载荷的 MSS 值"
+    },
+    {
+      "name": "mssfix_dialogtitle",
+      "value": "设置 TCP 载荷的 MSS"
+    },
+    {
+      "name": "mssfix_value_dialog",
+      "value": "输入 MSS 值（默认为 1450）。"
+    },
+    {
+      "name": "mssfix_value_summary",
+      "value": "已配置的 MSS 值：%s"
+    },
+    {
+      "name": "mssfix_invalid_value",
+      "value": "无效的 MSS 值。必须是 0 到 9000 之间的整数"
+    },
+    {
+      "name": "tun_mtu_title",
+      "value": "隧道 MTU（tun-mtu）"
+    },
+    {
+      "name": "mtu_dialog_message",
+      "value": "输入隧道 MTU 值。未设置时使用默认值 1500。"
+    },
+    {
+      "name": "mtu_default_summary",
+      "value": "使用默认（1500）MTU"
+    },
+    {
+      "name": "mtu_configured_summary",
+      "value": "已配置的 MTU 值：%s"
+    },
+    {
+      "name": "mtu_invalid_value",
+      "value": "无效的 MTU 值。必须是 48 到 9000 之间的整数"
+    },
+    {
+      "name": "custom_config_title",
+      "value": "启用自定义选项"
+    },
+    {
+      "name": "custom_config_summary",
+      "value": "指定自定义选项。请谨慎使用！"
+    },
+    {
+      "name": "custom_options_title",
+      "value": "自定义选项"
+    },
+    {
+      "name": "custom_option_warning",
+      "value": "输入您自己的 OpenVPN 选项。请谨慎使用！"
+    },
+    {
+      "name": "reconnection_settings",
+      "value": "重连设置"
+    },
+    {
+      "name": "connection_retries",
+      "value": "连接重试次数"
+    },
+    {
+      "name": "crm_none",
+      "value": "不重连"
+    },
+    {
+      "name": "crm_one",
+      "value": "重连一次"
+    },
+    {
+      "name": "crm_five",
+      "value": "重连五次"
+    },
+    {
+      "name": "crm_fifty",
+      "value": "重连五十次"
+    },
+    {
+      "name": "crm_unlimited",
+      "value": "无限重连"
+    },
+    {
+      "name": "connectretrywait",
+      "value": "连接之间的秒数"
+    },
+    {
+      "name": "connectretrymessage",
+      "value": "两次连接尝试之间等待的秒数。"
+    },
+    {
+      "name": "connectretrymaxtitle",
+      "value": "连接尝试之间的最大时间"
+    },
+    {
+      "name": "connectretrymaxmessage",
+      "value": "连接尝试之间的最大时间（秒）。默认为 300 秒。"
+    },
+    {
+      "name": "vpn_allowed_apps",
+      "value": "允许的应用"
+    },
+    {
+      "name": "vpn_disallow_radio",
+      "value": "VPN 用于所有应用，排除选中的应用"
+    },
+    {
+      "name": "vpn_allow_radio",
+      "value": "VPN 仅用于选中的应用"
+    },
+    {
+      "name": "vpn_allow_bypass",
+      "value": "允许应用绕过 VPN"
+    },
+    {
+      "name": "allowed_apps_manual_hint",
+      "value": "输入应包含在上方列表中的应用包名。"
+    },
+    {
+      "name": "generated_config",
+      "value": "生成的配置"
+    },
+    {
+      "name": "building_config",
+      "value": "正在生成配置..."
+    },
+    {
+      "name": "config_copied_clipboard",
+      "value": "配置已复制到剪贴板"
+    },
+    {
+      "name": "edit_profile_title",
+      "value": "正在编辑\"%s\""
+    },
+    {
+      "name": "remove_vpn_confirm_title",
+      "value": "确认删除"
+    },
+    {
+      "name": "remove_vpn_query",
+      "value": "移除 VPN 配置文件'%s'？"
+    },
+    {
+      "name": "remove_vpn",
+      "value": "移除 VPN"
+    },
+    {
+      "name": "openvpn_log",
+      "value": "OpenVPN 日志"
+    },
+    {
+      "name": "log_verbosity_level",
+      "value": "日志记录级别"
+    },
+    {
+      "name": "timestamps",
+      "value": "时间戳"
+    },
+    {
+      "name": "timestamps_none",
+      "value": "无"
+    },
+    {
+      "name": "timestamps_short",
+      "value": "短"
+    },
+    {
+      "name": "timestamps_iso",
+      "value": "ISO"
+    },
+    {
+      "name": "clear_log_on_connect",
+      "value": "建立新连接时清空日志"
+    },
+    {
+      "name": "speed_waiting",
+      "value": "正在等待状态消息…"
+    },
+    {
+      "name": "copied_entry",
+      "value": "已将日志项复制到剪贴板"
+    },
+    {
+      "name": "log_copied_clipboard",
+      "value": "日志已复制到剪贴板"
+    },
+    {
+      "name": "log_cleared",
+      "value": "日志已清除。"
+    },
+    {
+      "name": "log_no_last_vpn",
+      "value": "无法确定要编辑的上一个连接的配置文件"
+    },
+    {
+      "name": "uploaded_data",
+      "value": "已上传数据"
+    },
+    {
+      "name": "downloaded_data",
+      "value": "已下载数据"
+    },
+    {
+      "name": "vpn_status",
+      "value": "VPN 状态"
+    },
+    {
+      "name": "use_logarithmic_scale",
+      "value": "使用对数刻度"
+    },
+    {
+      "name": "graph_last_5_minutes",
+      "value": "上5分钟"
+    },
+    {
+      "name": "graph_avg_per_minute",
+      "value": "平均每分钟"
+    },
+    {
+      "name": "graph_avg_per_hour",
+      "value": "平均每小时"
+    },
+    {
+      "name": "notenoughdata",
+      "value": "数据不足"
+    },
+    {
+      "name": "app_behaviour",
+      "value": "应用程序行为"
+    },
+    {
+      "name": "showlogwindow",
+      "value": "显示日志窗口"
+    },
+    {
+      "name": "showlogwindow_summary",
+      "value": "连接时显示日志窗口。日志窗口始终可以从通知栏访问。"
+    },
+    {
+      "name": "allow_translation",
+      "value": "允许社区贡献的翻译"
+    },
+    {
+      "name": "allow_translation_summary",
+      "value": "需要重启应用激活"
+    },
+    {
+      "name": "ovpn3",
+      "value": "OpenVPN 3 核心"
+    },
+    {
+      "name": "ovpn3_summary_off",
+      "value": "使用 OpenVPN 2.x"
+    },
+    {
+      "name": "not_available_this_build",
+      "value": "此构建中不可用"
+    },
+    {
+      "name": "alwaysOnVpn",
+      "value": "默认VPN"
+    },
+    {
+      "name": "defaultvpnsummary",
+      "value": "快速连接和始终启用时使用的 VPN"
+    },
+    {
+      "name": "currently_selected_vpn",
+      "value": "目前选择的VPN：'%s'"
+    },
+    {
+      "name": "no_vpn_selected",
+      "value": "没有VPN被选中"
+    },
+    {
+      "name": "restartvpnonboot",
+      "value": "保持 VPN 连接"
+    },
+    {
+      "name": "no_default_vpn_set",
+      "value": "未设置开机重连的默认 VPN"
+    },
+    {
+      "name": "preferencryption",
+      "value": "加密配置文件"
+    },
+    {
+      "name": "vpnbehaviour",
+      "value": "VPN 行为"
+    },
+    {
+      "name": "usesystemproxy",
+      "value": "使用系统代理"
+    },
+    {
+      "name": "usesystemproxy_summary",
+      "value": "使用系统代理配置进行连接"
+    },
+    {
+      "name": "netchangereconnect",
+      "value": "当网络更改时重新连接"
+    },
+    {
+      "name": "netchangereconnect_summary",
+      "value": "WiFi/移动网络切换时强制重连"
+    },
+    {
+      "name": "screenoff",
+      "value": "屏幕关闭后暂停 VPN 连接"
+    },
+    {
+      "name": "screenoff_summary",
+      "value": "如果屏幕关闭且 60 秒内传输少于 64 kB，则暂停 VPN 连接。（需要持久 Tun。）"
+    },
+    {
+      "name": "disableconfirmation",
+      "value": "禁用 VPN 连接确认"
+    },
+    {
+      "name": "osslspeed",
+      "value": "OpenSSL Crypto速度测试"
+    },
+    {
+      "name": "osslspeed_summary",
+      "value": "测量设备的加密速度"
+    },
+    {
+      "name": "clearapi",
+      "value": "清除允许的外部应用程序"
+    },
+    {
+      "name": "import_configuration_file",
+      "value": "导入配置文件"
+    },
+    {
+      "name": "import_from_as",
+      "value": "从服务器/URL导入"
+    },
+    {
+      "name": "import_from_access_server",
+      "value": "OpenVPN Access Server"
+    },
+    {
+      "name": "import_from_URL",
+      "value": "URL"
+    },
+    {
+      "name": "as_servername",
+      "value": "AS 服务器名"
+    },
+    {
+      "name": "server_url",
+      "value": "URL"
+    },
+    {
+      "name": "request_autologin",
+      "value": "请求自动登录配置"
+    },
+    {
+      "name": "import_config",
+      "value": "导入 OpenVPN 配置"
+    },
+    {
+      "name": "importing",
+      "value": "导入中…"
+    },
+    {
+      "name": "make_default_profile",
+      "value": "将新配置文件设为快速连接和 VPN 配置使用的默认配置文件"
+    },
+    {
+      "name": "files_missing_hint",
+      "value": "无法自动找到的文件。请手动选择："
+    },
+    {
+      "name": "import_log",
+      "value": "导入日志："
+    },
+    {
+      "name": "file_imported_from",
+      "value": "文件导入自：%s"
+    },
+    {
+      "name": "import_done",
+      "value": "导入完成。"
+    },
+    {
+      "name": "custom_options_imported",
+      "value": "在配置文件中发现自定义选项。"
+    },
+    {
+      "name": "converted_profile",
+      "value": "转换的配置文件"
+    },
+    {
+      "name": "faq_howto",
+      "value": "快速开始"
+    },
+    {
+      "name": "faq_howto_body",
+      "value": "获取一个可用的配置文件（见下），导入它（通过导入图标或邮件附件），在列表中选择该配置文件并点击名称进行连接。如果连接不正常，日志窗口可以帮助查找问题。"
+    },
+    {
+      "name": "faq_killswitch",
+      "value": "阻止非 VPN 连接（\"Killswitch\"）"
+    },
+    {
+      "name": "faq_killswitch_body",
+      "value": "使用 persist-tun 选项可以保持隧道打开，但操作系统仍可能断开隧道。阻止非 VPN 流量唯一可靠的方法是将系统设置'未使用 VPN 时阻止连接'与始终启用 VPN 一起使用。"
+    },
+    {
+      "name": "faq_remote_api",
+      "value": "远程API"
+    },
+    {
+      "name": "faq_remote_api_body",
+      "value": "此应用可以通过 API 远程控制。如果用户授权，第三方应用可以启动/停止 VPN 连接并导入配置文件。"
+    },
+    {
+      "name": "faq_ncp_title",
+      "value": "与服务器协商加密失败"
+    },
+    {
+      "name": "faq_ncp_body",
+      "value": "较新的客户端版本默认禁用了 BF-CBC 等旧加密算法。如果您的服务器仅支持这些旧算法，请在配置文件设置中启用 OpenSSL 旧版提供程序或设置适当的兼容模式。"
+    },
+    {
+      "name": "faq_md5_hashes",
+      "value": "证书签名中的弱 (MD5) 哈希"
+    },
+    {
+      "name": "faq_md5_body",
+      "value": "较新的 OpenSSL 版本拒绝使用弱哈希（如 MD5）签名的证书。首选方案是重新生成证书。临时解决办法是在认证/加密设置中将 TLS 安全配置设为不安全。"
+    },
+    {
+      "name": "faq_duplicate_notifications",
+      "value": "重复通知"
+    },
+    {
+      "name": "faq_duplicate_notifications_body",
+      "value": "VPN 以前台服务运行，因此必须显示通知。此通知不是应用通知，无法完全禁用。系统显示的钥匙图标也并非来自此应用。"
+    },
+    {
+      "name": "faq_different_clients",
+      "value": "不同 OpenVPN 客户端的区别"
+    },
+    {
+      "name": "faq_different_clients_body",
+      "value": "OpenVPN for Android（本应用，开源，使用 OpenVPN 2.x，面向高级用户）、OpenVPN Connect（使用 OpenVPN 3 C++ 核心的官方客户端）以及更早的基于 root 的方案在功能和行为上有所不同。"
+    },
+    {
+      "name": "faq_battery",
+      "value": "电池消耗"
+    },
+    {
+      "name": "faq_battery_body",
+      "value": "VPN 的 keepalive（例如 keepalive 10 60）会迫使移动射频保持活跃，这是耗电的主要原因。客户端无法更改它。超过 60 秒的 UDP keepalive 可能被 NAT 路由器丢弃。同时避免 TCP-over-TCP 设置，其性能很差。"
+    },
+    {
+      "name": "faq_tap",
+      "value": "Tap 模式"
+    },
+    {
+      "name": "faq_tap_body",
+      "value": "没有 root 无法支持 tap 设备，因此本应用不支持。请使用 tun 模式。"
+    },
+    {
+      "name": "faq_copying_log",
+      "value": "正在复制日志项"
+    },
+    {
+      "name": "faq_copying_log_body",
+      "value": "长按单条日志项可将其复制到剪贴板。使用发送/复制日志可复制整个日志。"
+    },
+    {
+      "name": "faq_routing",
+      "value": "路由/接口配置"
+    },
+    {
+      "name": "faq_routing_body",
+      "value": "本应用使用系统 VPN 接口 API 而不是 ifconfig/route。没有网关概念；排除的路由通过反向路由实现。系统使用策略路由，可以用 'ip rule' 查看。"
+    },
+    {
+      "name": "faq_non_cidr",
+      "value": "非 CIDR路由"
+    },
+    {
+      "name": "faq_non_cidr_body",
+      "value": "系统仅支持 CIDR 路由。非 CIDR 掩码的路由会被替换为 /32 主机路由并发出警告。"
+    },
+    {
+      "name": "faq_proxy",
+      "value": "VPN 的代理行为"
+    },
+    {
+      "name": "faq_proxy_body",
+      "value": "如果未设置 DNS 服务器，系统可能仍会对 VPN 上的连接使用系统代理。如果设置了 DNS 服务器，则不使用代理。VPN 没有代理 API。"
+    },
+    {
+      "name": "faq_security",
+      "value": "安全注意事项"
+    },
+    {
+      "name": "faq_security_body",
+      "value": "共享存储上的数据不安全。将证书/密钥文件导入应用后请删除原件。可以考虑将 PKCS12 文件导入系统密钥库。"
+    },
+    {
+      "name": "faq_shortcut",
+      "value": "启动快捷方式"
+    },
+    {
+      "name": "faq_shortcut_body",
+      "value": "您可以在桌面放置快捷方式来快速连接默认 VPN。"
+    },
+    {
+      "name": "version_info",
+      "value": "%1$s %2$s"
+    },
+    {
+      "name": "copyright_port",
+      "value": "ics-openvpn 开源客户端（版权所有 2012-2018 Arne Schwabe 及贡献者）的 HarmonyOS 移植版。基于 GPLv2 许可。"
+    },
+    {
+      "name": "copyright_guicode",
+      "value": "原版源代码与问题跟踪：https://github.com/schwabe/ics-openvpn/"
+    },
+    {
+      "name": "translationby",
+      "value": "英语译者 Arne Schwabe"
+    },
+    {
+      "name": "privpolicy",
+      "value": "隐私政策"
+    },
+    {
+      "name": "privacy_policy",
+      "value": "除用户配置的 VPN 服务器外，本应用不与任何其他服务器通信。作者不收集任何数据。"
+    },
+    {
+      "name": "eol_notice_header",
+      "value": "服务终止"
+    },
+    {
+      "name": "eol_notice",
+      "value": "源代码基于 GPLv2 许可并可以永久使用，但作者保留停止开发或发布本应用的权利。"
+    },
+    {
+      "name": "copyright_others",
+      "value": "本程序使用了以下组件；许可详情请查看源代码"
+    },
+    {
+      "name": "copyright_openvpn",
+      "value": "OpenVPN：版权所有 (c) 2002-2010 OpenVPN Technologies, Inc.'OpenVPN' 是 OpenVPN Inc. 的商标。"
+    },
+    {
+      "name": "copyright_file_dialog",
+      "value": "文件对话框：基于 Alexander Ponomarev 的工作"
+    },
+    {
+      "name": "copyright_lzo",
+      "value": "LZO：版权所有 (c) 1996-2011 Markus Franz Xaver Johannes Oberhumer"
+    },
+    {
+      "name": "copyright_openssl",
+      "value": "OpenSSL：版权所有 (c) 1998-2011 The OpenSSL Project。本产品包含 Eric Young 编写的加密软件。"
+    },
+    {
+      "name": "copyright_bouncycastle",
+      "value": "Bouncy Castle Crypto API：版权所有 (c) 2000-2012 The Legion Of The Bouncy Castle"
+    },
+    {
+      "name": "no_keystore_cert_selected",
+      "value": "未选择密钥库证书"
+    },
+    {
+      "name": "no_ca_cert_selected",
+      "value": "未设置 CA 证书"
+    },
+    {
+      "name": "deprecated_tls_remote",
+      "value": "tls-remote 已废弃，将在 OpenVPN 2.5 中移除"
+    },
+    {
+      "name": "ipv4_format_error",
+      "value": "IPv4 地址错误"
+    },
+    {
+      "name": "custom_route_format_error",
+      "value": "自定义路由格式错误"
+    },
+    {
+      "name": "missing_tlsauth",
+      "value": "缺少 tls-auth/tls-crypt 文件"
+    },
+    {
+      "name": "missing_certificates",
+      "value": "缺少证书或密钥文件"
+    },
+    {
+      "name": "openvpn3_nostatickeys",
+      "value": "OpenVPN 3 核心不支持静态密钥"
+    },
+    {
+      "name": "openvpn3_pkcs12",
+      "value": "OpenVPN 3 核心不支持 PKCS12 文件"
+    },
+    {
+      "name": "openvpn3_socksproxy",
+      "value": "OpenVPN 3 核心不支持 SOCKS 代理"
+    },
+    {
+      "name": "no_orbotfound",
+      "value": "未安装 Orbot"
+    },
+    {
+      "name": "error_orbot_and_proxy_options",
+      "value": "不支持在自定义选项中使用 http-proxy-option 与 Orbot 组合。"
+    },
+    {
+      "name": "bf_cbc_requires_legacy",
+      "value": "BF-CBC 加密需要启用 OpenSSL 旧版提供程序"
+    },
+    {
+      "name": "state_building_config",
+      "value": "正在构建配置…"
+    },
+    {
+      "name": "state_connecting",
+      "value": "连接中…"
+    },
+    {
+      "name": "state_resolving",
+      "value": "正在解析主机名…"
+    },
+    {
+      "name": "state_connecting_tcp",
+      "value": "连接中（TCP）…"
+    },
+    {
+      "name": "no_certificate",
+      "value": "没有证书"
+    },
+    {
+      "name": "pkcs12pwquery",
+      "value": "PKCS12 密码"
+    }
+  ]
+}

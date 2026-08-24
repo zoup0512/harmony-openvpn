@@ -1,0 +1,1384 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "OpenVPN client"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "OpenVPN client"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "OpenVPN"
+    },
+    {
+      "name": "app_name",
+      "value": "OpenVPN for Harmony"
+    },
+    {
+      "name": "vpn_list_title",
+      "value": "Profiles"
+    },
+    {
+      "name": "graph",
+      "value": "Graph"
+    },
+    {
+      "name": "generalsettings",
+      "value": "Settings"
+    },
+    {
+      "name": "faq",
+      "value": "FAQ"
+    },
+    {
+      "name": "about",
+      "value": "About"
+    },
+    {
+      "name": "ok",
+      "value": "OK"
+    },
+    {
+      "name": "cancel",
+      "value": "Cancel"
+    },
+    {
+      "name": "yes",
+      "value": "Yes"
+    },
+    {
+      "name": "no",
+      "value": "No"
+    },
+    {
+      "name": "delete",
+      "value": "Delete"
+    },
+    {
+      "name": "keep",
+      "value": "Keep"
+    },
+    {
+      "name": "select",
+      "value": "Select"
+    },
+    {
+      "name": "clear",
+      "value": "Clear"
+    },
+    {
+      "name": "sorted_az",
+      "value": "Profiles sorted by name"
+    },
+    {
+      "name": "sorted_lru",
+      "value": "Profiles sorted by last recently used"
+    },
+    {
+      "name": "menu_add_profile",
+      "value": "Add Profile"
+    },
+    {
+      "name": "add_profile_name_prompt",
+      "value": "Enter a name identifying the new Profile"
+    },
+    {
+      "name": "name_of_the_vpn_profile",
+      "value": "Name of the VPN profile"
+    },
+    {
+      "name": "menu_import_short",
+      "value": "Import"
+    },
+    {
+      "name": "duplicate_profile_name",
+      "value": "Please enter a unique Profile Name"
+    },
+    {
+      "name": "no_vpn_profiles_defined",
+      "value": "No VPN profiles defined."
+    },
+    {
+      "name": "openvpn_is_no_free_vpn",
+      "value": "To use this app you need a VPN provider/VPN gateway supporting OpenVPN (often provided by your employer). Check out https://community.openvpn.net/ for more information."
+    },
+    {
+      "name": "add_new_vpn_hint",
+      "value": "Use the + icon to add a new VPN"
+    },
+    {
+      "name": "vpn_import_hint",
+      "value": "Use the import icon to import an existing (.ovpn or .conf) profile."
+    },
+    {
+      "name": "faq_hint",
+      "value": "Be sure to also check out the FAQ. There is a quick start guide."
+    },
+    {
+      "name": "missing_notification_permission",
+      "value": "Missing notification permission. It is used to show the status of the VPN and to notify you about required user interaction, e.g. multi factor authentication."
+    },
+    {
+      "name": "configure_the_vpn",
+      "value": "Configure the VPN"
+    },
+    {
+      "name": "title_cancel",
+      "value": "Cancel Confirmation"
+    },
+    {
+      "name": "cancel_connection_query",
+      "value": "Disconnect the connected VPN/cancel the connection attempt?"
+    },
+    {
+      "name": "cancel_connection",
+      "value": "Disconnect"
+    },
+    {
+      "name": "config_error_found",
+      "value": "Configuration error found"
+    },
+    {
+      "name": "state_disconnected",
+      "value": "Disconnected"
+    },
+    {
+      "name": "copy_of_profile",
+      "value": "Copy of %s"
+    },
+    {
+      "name": "duplicate_vpn",
+      "value": "Duplicated as %s"
+    },
+    {
+      "name": "ca_title",
+      "value": "CA Certificate"
+    },
+    {
+      "name": "client_certificate_title",
+      "value": "Client Certificate"
+    },
+    {
+      "name": "client_key_title",
+      "value": "Client Certificate Key"
+    },
+    {
+      "name": "client_pkcs12_title",
+      "value": "PKCS12 File"
+    },
+    {
+      "name": "crl_title",
+      "value": "Certifcate Revoke List (optional)"
+    },
+    {
+      "name": "inline_file_data",
+      "value": "[[Inline file data]]"
+    },
+    {
+      "name": "imported_from_file",
+      "value": "[Imported from: %s]"
+    },
+    {
+      "name": "no_data",
+      "value": "No Data"
+    },
+    {
+      "name": "import_error_message",
+      "value": "An error occurred while importing the profile"
+    },
+    {
+      "name": "error_importing_file",
+      "value": "Error importing file"
+    },
+    {
+      "name": "pkcs12_file_encryption_key",
+      "value": "PKCS12 File Encryption Key"
+    },
+    {
+      "name": "private_key_password",
+      "value": "Private Key Password"
+    },
+    {
+      "name": "password",
+      "value": "Password"
+    },
+    {
+      "name": "pw_query_hint",
+      "value": "(leave empty to query on demand)"
+    },
+    {
+      "name": "fingerprint",
+      "value": "(Enter the SHA256 fingerprint of the server certificate(s))"
+    },
+    {
+      "name": "profilename",
+      "value": "Profile Name"
+    },
+    {
+      "name": "compat_mode_label",
+      "value": "Compatibility mode"
+    },
+    {
+      "name": "loadossllegacy",
+      "value": "Load OpenSSL legacy provider"
+    },
+    {
+      "name": "useLZO",
+      "value": "LZO Compression"
+    },
+    {
+      "name": "vpn_type",
+      "value": "Type"
+    },
+    {
+      "name": "auth_username",
+      "value": "Username (leave empty for no auth)"
+    },
+    {
+      "name": "auth_pwquery",
+      "value": "Password"
+    },
+    {
+      "name": "auth_failed_behaviour",
+      "value": "Behaviour on AUTH_FAILED"
+    },
+    {
+      "name": "check_peer_fingerprint",
+      "value": "Check peer certificate fingerprint"
+    },
+    {
+      "name": "static_keys_info",
+      "value": "For the static configuration the TLS Auth Keys will be used as static keys"
+    },
+    {
+      "name": "client_no_certificate",
+      "value": "No Certificate"
+    },
+    {
+      "name": "keystore_not_supported",
+      "value": "System keystore certificates are not available on this platform. Use file based (Certificates/PKCS12) authentication instead."
+    },
+    {
+      "name": "external_authenticator",
+      "value": "External Authenticator"
+    },
+    {
+      "name": "extauth_not_supported",
+      "value": "External authenticator apps are not supported on this platform."
+    },
+    {
+      "name": "extracahint",
+      "value": "The CA cert is usually returned from the system keystore. Only set it if the keystore does not return one."
+    },
+    {
+      "name": "vpn_type_certificates",
+      "value": "Certificates"
+    },
+    {
+      "name": "vpn_type_pkcs12",
+      "value": "PKCS12 File"
+    },
+    {
+      "name": "vpn_type_keystore",
+      "value": "Android Certificate"
+    },
+    {
+      "name": "vpn_type_userpass",
+      "value": "Username/Password"
+    },
+    {
+      "name": "vpn_type_statickeys",
+      "value": "Static Keys"
+    },
+    {
+      "name": "vpn_type_userpass_certificates",
+      "value": "User/PW + Certificates"
+    },
+    {
+      "name": "vpn_type_userpass_pkcs12",
+      "value": "User/PW + PKCS12"
+    },
+    {
+      "name": "vpn_type_userpass_keystore",
+      "value": "User/PW + Android Certificate"
+    },
+    {
+      "name": "vpn_type_external_app",
+      "value": "External Auth Provider"
+    },
+    {
+      "name": "compat_mode_modern",
+      "value": "Modern defaults"
+    },
+    {
+      "name": "compat_mode_25",
+      "value": "OpenVPN 2.5.x peers"
+    },
+    {
+      "name": "compat_mode_24",
+      "value": "OpenVPN 2.4.x peers"
+    },
+    {
+      "name": "compat_mode_23",
+      "value": "OpenVPN 2.3.x and older peers"
+    },
+    {
+      "name": "auth_retry_disconnect_forget",
+      "value": "Disconnect, forget password"
+    },
+    {
+      "name": "auth_retry_disconnect_keep",
+      "value": "Disconnect, keep password"
+    },
+    {
+      "name": "auth_retry_ignore_retry",
+      "value": "Ignore, retry"
+    },
+    {
+      "name": "server_list",
+      "value": "Server List"
+    },
+    {
+      "name": "remote_random",
+      "value": "Use connection entries in random order on connect"
+    },
+    {
+      "name": "remote_no_server_selected",
+      "value": "You need to define and enable at least one remote server."
+    },
+    {
+      "name": "query_delete_remote",
+      "value": "Remove remote server entry?"
+    },
+    {
+      "name": "address",
+      "value": "Server Address:"
+    },
+    {
+      "name": "port",
+      "value": "Server Port:"
+    },
+    {
+      "name": "enabled_connection_entry",
+      "value": "Enabled"
+    },
+    {
+      "name": "protocol",
+      "value": "Protocol"
+    },
+    {
+      "name": "udp_proto",
+      "value": "UDP"
+    },
+    {
+      "name": "tcp_proto",
+      "value": "TCP"
+    },
+    {
+      "name": "proxy",
+      "value": "Proxy"
+    },
+    {
+      "name": "Use_no_proxy",
+      "value": "None"
+    },
+    {
+      "name": "proxy_socks5",
+      "value": "Socksv5"
+    },
+    {
+      "name": "tor_orbot",
+      "value": "Tor (Orbot)"
+    },
+    {
+      "name": "enableproxyauth",
+      "value": "Enable Proxy Authentication"
+    },
+    {
+      "name": "proxy_auth_username",
+      "value": "Username"
+    },
+    {
+      "name": "connect_timeout",
+      "value": "Connect Timeout"
+    },
+    {
+      "name": "custom_connection_options",
+      "value": "Custom Options"
+    },
+    {
+      "name": "custom_connection_options_warng",
+      "value": "Specify custom connection specific options. Use with care"
+    },
+    {
+      "name": "add_remote",
+      "value": "Add new remote"
+    },
+    {
+      "name": "ipdns",
+      "value": "IP and DNS"
+    },
+    {
+      "name": "basic",
+      "value": "Basic"
+    },
+    {
+      "name": "use_pull",
+      "value": "Pull Settings"
+    },
+    {
+      "name": "pull_on_summary",
+      "value": "Requests IP addresses, routes and timing options from the server."
+    },
+    {
+      "name": "pull_off_summary",
+      "value": "No information is requested from the server. Settings need to be specified below."
+    },
+    {
+      "name": "ipv4_address",
+      "value": "IPv4 Address"
+    },
+    {
+      "name": "ipv4_dialog_title",
+      "value": "Enter IPv4 Address/Netmask in CIDR Format (e.g. 1.2.3.4/24)"
+    },
+    {
+      "name": "ipv6_address",
+      "value": "IPv6 Address"
+    },
+    {
+      "name": "ipv6_dialog_tile",
+      "value": "Enter IPv6 Address/Netmask in CIDR Format (e.g. 2000:dd::23/64)"
+    },
+    {
+      "name": "no_bind",
+      "value": "No local binding"
+    },
+    {
+      "name": "nobind_summary",
+      "value": "Do not bind to local address and port"
+    },
+    {
+      "name": "dns",
+      "value": "DNS"
+    },
+    {
+      "name": "override_dns",
+      "value": "Override DNS Settings by Server"
+    },
+    {
+      "name": "dns_override_summary",
+      "value": "Use your own DNS Servers"
+    },
+    {
+      "name": "searchdomain",
+      "value": "searchDomain"
+    },
+    {
+      "name": "dns_server",
+      "value": "DNS Server"
+    },
+    {
+      "name": "dns1_summary",
+      "value": "DNS Server to be used."
+    },
+    {
+      "name": "backup_dns",
+      "value": "Backup DNS Server"
+    },
+    {
+      "name": "secondary_dns_message",
+      "value": "Secondary DNS Server to be used"
+    },
+    {
+      "name": "dns_not_set",
+      "value": "(not set)"
+    },
+    {
+      "name": "routing",
+      "value": "Routing"
+    },
+    {
+      "name": "ignored_pushed_routes",
+      "value": "Ignore pushed routes"
+    },
+    {
+      "name": "ignore_routes_summary",
+      "value": "Ignore routes pushed by the server."
+    },
+    {
+      "name": "blocklocal_title",
+      "value": "Bypass VPN for local networks"
+    },
+    {
+      "name": "blocklocal_summary",
+      "value": "Networks directly connected to the local interfaces will not be routed over the VPN."
+    },
+    {
+      "name": "title_block_address_families",
+      "value": "Block IPv6 (or IPv4) if not used by the VPN"
+    },
+    {
+      "name": "summary_block_address_families",
+      "value": "This option instructs the system to not allow protocols (IPv4/IPv6) if the VPN does not set any IPv4 or IPv6 addresses."
+    },
+    {
+      "name": "use_default_title",
+      "value": "Use default Route"
+    },
+    {
+      "name": "default_route_summary",
+      "value": "Redirects all Traffic over the VPN"
+    },
+    {
+      "name": "custom_routes_title",
+      "value": "Custom Routes"
+    },
+    {
+      "name": "custom_route_message",
+      "value": "Enter the custom routes in CIDR format (e.g. 1.2.3.4/24). Separate several routes with ,"
+    },
+    {
+      "name": "custom_routes_title_excluded",
+      "value": "Excluded Networks"
+    },
+    {
+      "name": "custom_route_message_excluded",
+      "value": "Enter the excluded networks in CIDR format. Several networks with ,"
+    },
+    {
+      "name": "settings_auth",
+      "value": "Authentication/Encryption"
+    },
+    {
+      "name": "tls_settings",
+      "value": "TLS Settings"
+    },
+    {
+      "name": "tls_profile",
+      "value": "TLS Security Profile"
+    },
+    {
+      "name": "tls_profile_insecure",
+      "value": "insecure (not recommend, allows insecure crypto)"
+    },
+    {
+      "name": "tls_profile_legacy",
+      "value": "legacy (default)"
+    },
+    {
+      "name": "tls_profile_preferred",
+      "value": "preferred (recommended but limited compatibility)"
+    },
+    {
+      "name": "tls_profile_suiteb",
+      "value": "Suite B (only NIST approved elliptic curves)"
+    },
+    {
+      "name": "check_remote_tlscert_title",
+      "value": "Expect TLS server certificate"
+    },
+    {
+      "name": "check_remote_tlscert",
+      "value": "Checks whether the server uses a certificate with TLS Server extensions (--remote-cert-tls server)"
+    },
+    {
+      "name": "remote_tlscn_check_title",
+      "value": "Certificate Hostname Check"
+    },
+    {
+      "name": "remote_tlscn_check_summary",
+      "value": "Checks the Remote Server Certificate Subject DN"
+    },
+    {
+      "name": "enter_tlscn_title",
+      "value": "Remote certificate subject"
+    },
+    {
+      "name": "enter_tlscn_dialog",
+      "value": "Enter the DN of the remote server certificate. The DN is checked using --verify-x509-name."
+    },
+    {
+      "name": "no_remote_defined",
+      "value": "No remote defined"
+    },
+    {
+      "name": "x509_username_field",
+      "value": "X509 Username Field"
+    },
+    {
+      "name": "x509_username_field_summary",
+      "value": "Field in the X.509 certificate subject to be used as the username (default=CN)."
+    },
+    {
+      "name": "complete_dn",
+      "value": "Complete DN"
+    },
+    {
+      "name": "rdn",
+      "value": "RDN (common name)"
+    },
+    {
+      "name": "rdn_prefix",
+      "value": "RDN prefix"
+    },
+    {
+      "name": "tls_remote_deprecated",
+      "value": "tls-remote (DEPRECATED)"
+    },
+    {
+      "name": "tls_authentication",
+      "value": "TLS Authentication/Encryption"
+    },
+    {
+      "name": "useTLSAuth",
+      "value": "Use Control Channel Authentication/Encryption"
+    },
+    {
+      "name": "tls_key_auth",
+      "value": "Enables an additional authentication/encryption layer for the OpenVPN control channel"
+    },
+    {
+      "name": "tls_auth_file",
+      "value": "TLS Auth/TLS Encryption File"
+    },
+    {
+      "name": "tls_direction",
+      "value": "Authentication/encryption method"
+    },
+    {
+      "name": "tls_direction_auth_0",
+      "value": "tls-auth - --direction 0"
+    },
+    {
+      "name": "tls_direction_auth_1",
+      "value": "tls-auth - --direction 1"
+    },
+    {
+      "name": "tls_direction_none",
+      "value": "tls-auth --direction not specified"
+    },
+    {
+      "name": "tls_direction_tlscrypt",
+      "value": "Encryption (--tls-crypt)"
+    },
+    {
+      "name": "tls_direction_tlscrypt2",
+      "value": "TLS Crypt V2"
+    },
+    {
+      "name": "encryption",
+      "value": "Encryption"
+    },
+    {
+      "name": "encryption_cipher",
+      "value": "Encryption ciphers"
+    },
+    {
+      "name": "chipher_dialog_message",
+      "value": "Enter the data encryption cipher algorithms used by OpenVPN separated by : (--data-ciphers). Leave empty to use the default of AES-256-GCM:AES-128-GCM:CHACHA20-POLY1305."
+    },
+    {
+      "name": "packet_auth",
+      "value": "Packet authentication"
+    },
+    {
+      "name": "auth_dialog_message",
+      "value": "Enter the authentication digest used for OpenVPN. Leave empty to use default digest."
+    },
+    {
+      "name": "advanced",
+      "value": "Advanced"
+    },
+    {
+      "name": "client_behaviour",
+      "value": "Client behaviour"
+    },
+    {
+      "name": "persistent_tun_title",
+      "value": "Persistent tun"
+    },
+    {
+      "name": "persisttun_summary",
+      "value": "Do not fallback to no VPN connection when OpenVPN is reconnecting."
+    },
+    {
+      "name": "pushpeerinfo",
+      "value": "Push Peer info"
+    },
+    {
+      "name": "pushpeerinfosummary",
+      "value": "Send extra information to the server, e.g. SSL version and platform version"
+    },
+    {
+      "name": "random_host_prefix",
+      "value": "Random Host Prefix"
+    },
+    {
+      "name": "random_host_summary",
+      "value": "Adds 6 random chars in front of hostname"
+    },
+    {
+      "name": "float_title",
+      "value": "Allow floating server"
+    },
+    {
+      "name": "float_summary",
+      "value": "Allows authenticated packets from any IP"
+    },
+    {
+      "name": "payload_options",
+      "value": "Payload options"
+    },
+    {
+      "name": "mssfix_checkbox",
+      "value": "Override MSS value of TCP payload"
+    },
+    {
+      "name": "mssfix_dialogtitle",
+      "value": "Set MSS of TCP payload"
+    },
+    {
+      "name": "mssfix_value_dialog",
+      "value": "Enter the MSS value (default is 1450)."
+    },
+    {
+      "name": "mssfix_value_summary",
+      "value": "Configured MSS value: %s"
+    },
+    {
+      "name": "mssfix_invalid_value",
+      "value": "Invalid MSS value. Must be an integer between 0 and 9000"
+    },
+    {
+      "name": "tun_mtu_title",
+      "value": "Tunnel MTU (tun-mtu)"
+    },
+    {
+      "name": "mtu_dialog_message",
+      "value": "Enter the tunnel MTU value. The default of 1500 is used if not set."
+    },
+    {
+      "name": "mtu_default_summary",
+      "value": "Using default (1500) MTU"
+    },
+    {
+      "name": "mtu_configured_summary",
+      "value": "Configured MTU value: %s"
+    },
+    {
+      "name": "mtu_invalid_value",
+      "value": "Invalid MTU value. Must be an integer between 48 and 9000"
+    },
+    {
+      "name": "custom_config_title",
+      "value": "Enable Custom Options"
+    },
+    {
+      "name": "custom_config_summary",
+      "value": "Specify custom options. Use with care!"
+    },
+    {
+      "name": "custom_options_title",
+      "value": "Custom Options"
+    },
+    {
+      "name": "custom_option_warning",
+      "value": "Enter your own OpenVPN options. Use with care!"
+    },
+    {
+      "name": "reconnection_settings",
+      "value": "Reconnection settings"
+    },
+    {
+      "name": "connection_retries",
+      "value": "Connection retries"
+    },
+    {
+      "name": "crm_none",
+      "value": "No reconnection retries"
+    },
+    {
+      "name": "crm_one",
+      "value": "One reconnection retry"
+    },
+    {
+      "name": "crm_five",
+      "value": "Five reconnection retries"
+    },
+    {
+      "name": "crm_fifty",
+      "value": "Fifty reconnection retries"
+    },
+    {
+      "name": "crm_unlimited",
+      "value": "Unlimited reconnection retries"
+    },
+    {
+      "name": "connectretrywait",
+      "value": "Seconds between connections"
+    },
+    {
+      "name": "connectretrymessage",
+      "value": "Number of seconds to wait between connection attempts."
+    },
+    {
+      "name": "connectretrymaxtitle",
+      "value": "Maximum time between connections attempts"
+    },
+    {
+      "name": "connectretrymaxmessage",
+      "value": "Maximum time in seconds between connection attempts. Default is 300 s."
+    },
+    {
+      "name": "vpn_allowed_apps",
+      "value": "Allowed Apps"
+    },
+    {
+      "name": "vpn_disallow_radio",
+      "value": "VPN is used for all apps but exclude selected"
+    },
+    {
+      "name": "vpn_allow_radio",
+      "value": "VPN is used for only for selected apps"
+    },
+    {
+      "name": "vpn_allow_bypass",
+      "value": "Allow apps to bypass the VPN"
+    },
+    {
+      "name": "allowed_apps_manual_hint",
+      "value": "Enter the package names of the apps that should be included in the list above."
+    },
+    {
+      "name": "generated_config",
+      "value": "Generated Config"
+    },
+    {
+      "name": "building_config",
+      "value": "Generating config..."
+    },
+    {
+      "name": "config_copied_clipboard",
+      "value": "Configuration copied to clipboard"
+    },
+    {
+      "name": "edit_profile_title",
+      "value": "Editing \"%s\""
+    },
+    {
+      "name": "remove_vpn_confirm_title",
+      "value": "Confirm deletion"
+    },
+    {
+      "name": "remove_vpn_query",
+      "value": "Remove the VPN Profile '%s'?"
+    },
+    {
+      "name": "remove_vpn",
+      "value": "Remove VPN"
+    },
+    {
+      "name": "openvpn_log",
+      "value": "OpenVPN Log"
+    },
+    {
+      "name": "log_verbosity_level",
+      "value": "Log verbosity level"
+    },
+    {
+      "name": "timestamps",
+      "value": "Timestamps"
+    },
+    {
+      "name": "timestamps_none",
+      "value": "None"
+    },
+    {
+      "name": "timestamps_short",
+      "value": "Short"
+    },
+    {
+      "name": "timestamps_iso",
+      "value": "ISO"
+    },
+    {
+      "name": "clear_log_on_connect",
+      "value": "Clear log on new connection"
+    },
+    {
+      "name": "speed_waiting",
+      "value": "Waiting for state message…"
+    },
+    {
+      "name": "copied_entry",
+      "value": "Copied log entry to clip board"
+    },
+    {
+      "name": "log_copied_clipboard",
+      "value": "Log copied to clipboard"
+    },
+    {
+      "name": "log_cleared",
+      "value": "Log cleared."
+    },
+    {
+      "name": "log_no_last_vpn",
+      "value": "Could not determine last connected profile for editing"
+    },
+    {
+      "name": "uploaded_data",
+      "value": "uploaded data"
+    },
+    {
+      "name": "downloaded_data",
+      "value": "downloaded data"
+    },
+    {
+      "name": "vpn_status",
+      "value": "VPN status"
+    },
+    {
+      "name": "use_logarithmic_scale",
+      "value": "Use logarithmic scale"
+    },
+    {
+      "name": "graph_last_5_minutes",
+      "value": "Last 5 minutes"
+    },
+    {
+      "name": "graph_avg_per_minute",
+      "value": "Average per minute"
+    },
+    {
+      "name": "graph_avg_per_hour",
+      "value": "Average per hour"
+    },
+    {
+      "name": "notenoughdata",
+      "value": "Not enough data"
+    },
+    {
+      "name": "app_behaviour",
+      "value": "Application behaviour"
+    },
+    {
+      "name": "showlogwindow",
+      "value": "Show log window"
+    },
+    {
+      "name": "showlogwindow_summary",
+      "value": "Show the log window on connect. The log window can always be accessed from the notification bar."
+    },
+    {
+      "name": "allow_translation",
+      "value": "Allow community contributed translations"
+    },
+    {
+      "name": "allow_translation_summary",
+      "value": "Requires an app restart to activate"
+    },
+    {
+      "name": "ovpn3",
+      "value": "OpenVPN 3 Core"
+    },
+    {
+      "name": "ovpn3_summary_off",
+      "value": "Use OpenVPN 2.x"
+    },
+    {
+      "name": "not_available_this_build",
+      "value": "not available in this build"
+    },
+    {
+      "name": "alwaysOnVpn",
+      "value": "Default VPN"
+    },
+    {
+      "name": "defaultvpnsummary",
+      "value": "VPN to be used on Quick Connect and always-on"
+    },
+    {
+      "name": "currently_selected_vpn",
+      "value": "Currently selected VPN: '%s'"
+    },
+    {
+      "name": "no_vpn_selected",
+      "value": "No VPN selected"
+    },
+    {
+      "name": "restartvpnonboot",
+      "value": "Keep VPN connected"
+    },
+    {
+      "name": "no_default_vpn_set",
+      "value": "No default VPN set to reconnect on boot"
+    },
+    {
+      "name": "preferencryption",
+      "value": "Encrypt profiles"
+    },
+    {
+      "name": "vpnbehaviour",
+      "value": "VPN behaviour"
+    },
+    {
+      "name": "usesystemproxy",
+      "value": "Use system proxy"
+    },
+    {
+      "name": "usesystemproxy_summary",
+      "value": "Use the system proxy configuration to connect"
+    },
+    {
+      "name": "netchangereconnect",
+      "value": "Reconnect on network change"
+    },
+    {
+      "name": "netchangereconnect_summary",
+      "value": "Force a reconnect when WiFi/mobile network changes"
+    },
+    {
+      "name": "screenoff",
+      "value": "Pause VPN connection after screen off"
+    },
+    {
+      "name": "screenoff_summary",
+      "value": "Pause the VPN connection if screen is off and less than 64 kB were transferred in 60 s. (Needs Persistent Tun.)"
+    },
+    {
+      "name": "disableconfirmation",
+      "value": "Disable VPN connection confirmations"
+    },
+    {
+      "name": "osslspeed",
+      "value": "OpenSSL Crypto Speed test"
+    },
+    {
+      "name": "osslspeed_summary",
+      "value": "Measure the crypto speed of the device"
+    },
+    {
+      "name": "clearapi",
+      "value": "Clear allowed external apps"
+    },
+    {
+      "name": "import_configuration_file",
+      "value": "Import configuration file"
+    },
+    {
+      "name": "import_from_as",
+      "value": "Import from Access Server/URL"
+    },
+    {
+      "name": "import_from_access_server",
+      "value": "OpenVPN Access Server"
+    },
+    {
+      "name": "import_from_URL",
+      "value": "URL"
+    },
+    {
+      "name": "as_servername",
+      "value": "AS servername"
+    },
+    {
+      "name": "server_url",
+      "value": "URL"
+    },
+    {
+      "name": "request_autologin",
+      "value": "Request autologin profile"
+    },
+    {
+      "name": "import_config",
+      "value": "Import OpenVPN configuration"
+    },
+    {
+      "name": "importing",
+      "value": "Importing…"
+    },
+    {
+      "name": "make_default_profile",
+      "value": "Make new profile default profile used in Quick Connect and VPN profile"
+    },
+    {
+      "name": "files_missing_hint",
+      "value": "Files that could not be found automatically. Select them manually:"
+    },
+    {
+      "name": "import_log",
+      "value": "Import log:"
+    },
+    {
+      "name": "file_imported_from",
+      "value": "File imported from: %s"
+    },
+    {
+      "name": "import_done",
+      "value": "Import done."
+    },
+    {
+      "name": "custom_options_imported",
+      "value": "Custom options found in the config file."
+    },
+    {
+      "name": "converted_profile",
+      "value": "converted Profile"
+    },
+    {
+      "name": "faq_howto",
+      "value": "Quick Start"
+    },
+    {
+      "name": "faq_howto_body",
+      "value": "Get a working configuration (see below), import it (via the import icon or from an attachment in an email), select the profile in the list and connect by tapping the name of the profile. If the connection does not work the log window may help to find the problem."
+    },
+    {
+      "name": "faq_killswitch",
+      "value": "Block non VPN connection (\"Killswitch\")"
+    },
+    {
+      "name": "faq_killswitch_body",
+      "value": "Using the persist-tun option will keep the tunnel open but there may be situations where the OS drops the tunnel. The only reliable method to block non-VPN traffic is to use the system setting 'Block connections without VPN' together with Always-On VPN."
+    },
+    {
+      "name": "faq_remote_api",
+      "value": "Remote API"
+    },
+    {
+      "name": "faq_remote_api_body",
+      "value": "The app can be controlled remotely via APIs. Third party apps can start and stop VPN connections and import profiles if the user grants access."
+    },
+    {
+      "name": "faq_ncp_title",
+      "value": "Failed to negotiate cipher with server"
+    },
+    {
+      "name": "faq_ncp_body",
+      "value": "Newer client versions disable old ciphers like BF-CBC by default. If your server only supports these old ciphers, enable the OpenSSL legacy provider or set an appropriate compatibility mode in the profile settings."
+    },
+    {
+      "name": "faq_md5_hashes",
+      "value": "Weak (MD5) hashes in certificate signature"
+    },
+    {
+      "name": "faq_md5_body",
+      "value": "Newer OpenSSL versions refuse certificates signed with weak hashes (e.g. MD5). The preferred solution is to regenerate the certificates. As a workaround the TLS security profile can be set to insecure in the Authentication/Encryption settings."
+    },
+    {
+      "name": "faq_duplicate_notifications",
+      "value": "Duplicate notifications"
+    },
+    {
+      "name": "faq_duplicate_notifications_body",
+      "value": "The VPN runs as a foreground service and therefore has to show a notification. This notification is not an app notification and cannot be fully disabled. The key icon shown by the system is also not from this app."
+    },
+    {
+      "name": "faq_different_clients",
+      "value": "Differences between the OpenVPN clients"
+    },
+    {
+      "name": "faq_different_clients_body",
+      "value": "OpenVPN for Android (this app, open source, uses OpenVPN 2.x, aimed at advanced users), OpenVPN Connect (official client using the OpenVPN 3 C++ core) and older root-based solutions differ in features and behaviour."
+    },
+    {
+      "name": "faq_battery",
+      "value": "Battery consumption"
+    },
+    {
+      "name": "faq_battery_body",
+      "value": "The keepalive of the VPN (e.g. keepalive 10 60) forces the mobile radio to stay active which is the main battery drain. This cannot be changed by the client. UDP keepalives longer than 60 s may be dropped by NAT routers. Also avoid TCP-over-TCP setups which perform poorly."
+    },
+    {
+      "name": "faq_tap",
+      "value": "Tap Mode"
+    },
+    {
+      "name": "faq_tap_body",
+      "value": "tap device support is not possible without root and is therefore not supported by this app. Use tun mode."
+    },
+    {
+      "name": "faq_copying_log",
+      "value": "Copying log entries"
+    },
+    {
+      "name": "faq_copying_log_body",
+      "value": "Long press a single log entry to copy it to the clipboard. Use Send/Copy log to copy the whole log."
+    },
+    {
+      "name": "faq_routing",
+      "value": "Routing/Interface Configuration"
+    },
+    {
+      "name": "faq_routing_body",
+      "value": "The app uses the system VPN interface API instead of ifconfig/route. There is no gateway concept; excluded routes are implemented via negative routes. The system uses policy routing which can be inspected with 'ip rule'."
+    },
+    {
+      "name": "faq_non_cidr",
+      "value": "Non CIDR Routes"
+    },
+    {
+      "name": "faq_non_cidr_body",
+      "value": "The system only supports CIDR routes. Non CIDR netmask routes are replaced by /32 host routes and a warning is issued."
+    },
+    {
+      "name": "faq_proxy",
+      "value": "Proxy behaviour for VPNs"
+    },
+    {
+      "name": "faq_proxy_body",
+      "value": "If no DNS servers are set the system may still use the system proxy for connections over the VPN. If DNS servers are set, no proxy is used. There is no proxy API for VPNs."
+    },
+    {
+      "name": "faq_security",
+      "value": "Security considerations"
+    },
+    {
+      "name": "faq_security_body",
+      "value": "Data on the shared storage is not secure. Delete the original certificate/key files after importing them into the app. Consider importing PKCS12 files into the system keystore."
+    },
+    {
+      "name": "faq_shortcut",
+      "value": "Shortcut to start"
+    },
+    {
+      "name": "faq_shortcut_body",
+      "value": "You can place a shortcut on the home screen to quickly connect the default VPN."
+    },
+    {
+      "name": "version_info",
+      "value": "%1$s %2$s"
+    },
+    {
+      "name": "copyright_port",
+      "value": "Port of the open source ics-openvpn client (Copyright 2012-2018 Arne Schwabe and contributors) to HarmonyOS. Licensed under the GPLv2."
+    },
+    {
+      "name": "copyright_guicode",
+      "value": "Original source code and issue tracker: https://github.com/schwabe/ics-openvpn/"
+    },
+    {
+      "name": "translationby",
+      "value": "English translation by Arne Schwabe"
+    },
+    {
+      "name": "privpolicy",
+      "value": "Privacy policy"
+    },
+    {
+      "name": "privacy_policy",
+      "value": "The application does not communicate with servers other than the VPN servers configured by the user. The author does not collect any data."
+    },
+    {
+      "name": "eol_notice_header",
+      "value": "End of service"
+    },
+    {
+      "name": "eol_notice",
+      "value": "The source code is licensed under GPLv2 and may be used forever, but the author reserves the right to stop developing or publishing the app."
+    },
+    {
+      "name": "copyright_others",
+      "value": "This program uses the following components; see the source code for full details on the licenses"
+    },
+    {
+      "name": "copyright_openvpn",
+      "value": "OpenVPN: Copyright (c) 2002-2010 OpenVPN Technologies, Inc. 'OpenVPN' is a trademark of OpenVPN Inc."
+    },
+    {
+      "name": "copyright_file_dialog",
+      "value": "File Dialog: based on work by Alexander Ponomarev"
+    },
+    {
+      "name": "copyright_lzo",
+      "value": "LZO: Copyright (c) 1996-2011 Markus Franz Xaver Johannes Oberhumer"
+    },
+    {
+      "name": "copyright_openssl",
+      "value": "OpenSSL: Copyright (c) 1998-2011 The OpenSSL Project. This product includes cryptographic software written by Eric Young."
+    },
+    {
+      "name": "copyright_bouncycastle",
+      "value": "Bouncy Castle Crypto APIs: Copyright (c) 2000-2012 The Legion Of The Bouncy Castle"
+    },
+    {
+      "name": "no_keystore_cert_selected",
+      "value": "No keystore certificate selected"
+    },
+    {
+      "name": "no_ca_cert_selected",
+      "value": "No CA certificate set"
+    },
+    {
+      "name": "deprecated_tls_remote",
+      "value": "tls-remote is deprecated and will be removed in OpenVPN 2.5"
+    },
+    {
+      "name": "ipv4_format_error",
+      "value": "Error in IPv4 address"
+    },
+    {
+      "name": "custom_route_format_error",
+      "value": "Error in custom route format"
+    },
+    {
+      "name": "missing_tlsauth",
+      "value": "Missing tls-auth/tls-crypt file"
+    },
+    {
+      "name": "missing_certificates",
+      "value": "Missing certificate or key file"
+    },
+    {
+      "name": "openvpn3_nostatickeys",
+      "value": "Static keys are not supported by the OpenVPN 3 core"
+    },
+    {
+      "name": "openvpn3_pkcs12",
+      "value": "PKCS12 files are not supported by the OpenVPN 3 core"
+    },
+    {
+      "name": "openvpn3_socksproxy",
+      "value": "The OpenVPN 3 core does not support SOCKS proxies"
+    },
+    {
+      "name": "no_orbotfound",
+      "value": "Orbot is not installed"
+    },
+    {
+      "name": "error_orbot_and_proxy_options",
+      "value": "Using custom options with http-proxy-option and Orbot is not supported."
+    },
+    {
+      "name": "bf_cbc_requires_legacy",
+      "value": "BF-CBC cipher requires enabling the OpenSSL legacy provider"
+    },
+    {
+      "name": "state_building_config",
+      "value": "Building configuration…"
+    },
+    {
+      "name": "state_connecting",
+      "value": "Connecting…"
+    },
+    {
+      "name": "state_resolving",
+      "value": "Resolving host names…"
+    },
+    {
+      "name": "state_connecting_tcp",
+      "value": "Connecting (TCP)…"
+    },
+    {
+      "name": "no_certificate",
+      "value": "No certificate"
+    },
+    {
+      "name": "pkcs12pwquery",
+      "value": "PKCS12 Password"
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+{
+   "abstract" : "extracts POD documentation and shows usage information",
+   "author" : [
+      "Marek Rouchal <marekr@cpan.org>"
+   ],
+   "dynamic_config" : 0,
+   "generated_by" : "Dist::Zilla version 6.015, CPAN::Meta::Converter version 2.150010",
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : 2
+   },
+   "name" : "Pod-Usage",
+   "no_index" : {
+      "directory" : [
+         "eg",
+         "examples",
+         "inc",
+         "share",
+         "t",
+         "xt"
+      ]
+   },
+   "prereqs" : {
+      "configure" : {
+         "requires" : {
+            "ExtUtils::MakeMaker" : "0",
+            "perl" : "5.006"
+         }
+      },
+      "develop" : {
+         "requires" : {
+            "File::Spec" : "0",
+            "IO::Handle" : "0",
+            "IPC::Open3" : "0",
+            "Pod::Coverage::TrustPod" : "0",
+            "Test::CPAN::Changes" : "0.4",
+            "Test::CPAN::Meta" : "0",
+            "Test::CheckManifest" : "1.29",
+            "Test::Kwalitee" : "1.22",
+            "Test::More" : "0.88",
+            "Test::Pod" : "1.41",
+            "Test::Pod::Coverage" : "1.08",
+            "Test::Pod::Spelling::CommonMistakes" : "1.000",
+            "Test::Spelling" : "0.12",
+            "Test::Version" : "2.00"
+         }
+      },
+      "runtime" : {
+         "requires" : {
+            "Cwd" : "0",
+            "File::Basename" : "0",
+            "File::Spec" : "0.82",
+            "Pod::Perldoc" : "3.28",
+            "Pod::Simple" : "3.40",
+            "Pod::Text" : "4.00",
+            "perl" : "5.006"
+         }
+      },
+      "test" : {
+         "recommends" : {
+            "CPAN::Meta" : "2.120900"
+         },
+         "requires" : {
+            "ExtUtils::MakeMaker" : "0",
+            "File::Spec" : "0.82",
+            "Test::More" : "0.60",
+            "blib" : "0",
+            "perl" : "5.006"
+         }
+      }
+   },
+   "provides" : {
+      "Pod::Usage" : {
+         "file" : "lib/Pod/Usage.pm",
+         "version" : "2.03"
+      }
+   },
+   "release_status" : "stable",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/Dual-Life/Pod-Usage/issues"
+      },
+      "homepage" : "https://github.com/Dual-Life/Pod-Usage",
+      "repository" : {
+         "type" : "git",
+         "url" : "https://github.com/Dual-Life/Pod-Usage.git",
+         "web" : "https://github.com/Dual-Life/Pod-Usage"
+      }
+   },
+   "version" : "2.03",
+   "x_contributors" : [
+      "Karl Williamson <khw@cpan.org>",
+      "Marek Rouchal <43476190+marekro@users.noreply.github.com>",
+      "Marek Rouchal <marek.rouchal@gmx.net>",
+      "Nicolas R <nicolas@atoomic.org>"
+   ],
+   "x_generated_by_perl" : "v5.26.1",
+   "x_serialization_backend" : "Cpanel::JSON::XS version 4.02",
+   "x_spdx_expression" : "Artistic-1.0-Perl OR GPL-1.0-or-later"
+}
+

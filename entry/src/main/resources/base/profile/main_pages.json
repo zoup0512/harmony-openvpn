@@ -1,8 +1,10 @@
 {
   "src": [
     "pages/Index",
+    "pages/ProfileEdit",
     "pages/VPNPreferences",
     "pages/LogWindow",
-    "pages/ConfigConverter"
+    "pages/ConfigConverter",
+    "pages/About"
   ]
 }

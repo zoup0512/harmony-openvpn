@@ -21,7 +21,7 @@ import { VpnStatus } from '../core/VpnStatus';
 import { LogLevel, ConnectionStatus } from '../core/LogItem';
 import { generateConfigFile, GenEnvInfo } from '../core/ConfigGenerator';
 import { Connection } from '../core/Connection';
-import { VpnController } from '../vpn/VpnController';
+import { VpnController, PendingAuthChallenge } from '../vpn/VpnController';
 import { OvpnEngine } from './OvpnEngine';
 import socket from '@ohos.net.socket';
 import notificationManager from '@ohos.notificationManager';
@@ -53,10 +53,6 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
   }
 
   private startFromWant(want: Want, source: string): void {
-    if (this.running) {
-      VpnStatus.logMessage(LogLevel.DEBUG, `Ignoring duplicate VPN start from ${source}.`);
-      return;
-    }
     let params = want.parameters as Record<string, Object>;
     let uuid: string | undefined = undefined;
     if (params !== undefined && params !== null) {
@@ -66,10 +62,20 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
       }
     }
     let reason = source;
+    let response = '';
+    let dynamicChallengeCookie = '';
     if (params !== undefined && params !== null) {
       let r = params['startReason'];
       if (typeof r === 'string') {
         reason = r;
+      }
+      let ar = params['authResponse'];
+      if (typeof ar === 'string') {
+        response = ar;
+      }
+      let dc = params['dynamicChallengeCookie'];
+      if (typeof dc === 'string') {
+        dynamicChallengeCookie = dc;
       }
     }
     if (uuid === undefined || uuid === null || uuid === '') {
@@ -82,15 +88,49 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
         if (pending.reason !== '') {
           reason = pending.reason;
         }
+        response = pending.response;
+        dynamicChallengeCookie = pending.dynamicChallengeCookie;
         VpnStatus.logMessage(LogLevel.INFO,
           `No profile uuid in want, using pending start request for ${uuid}.`);
       }
+    }
+    if (uuid !== undefined && uuid !== null && uuid !== '') {
+      VpnController.clearPendingStartRequest();
     }
     if (uuid === undefined || uuid === null || uuid === '') {
       VpnStatus.logMessage(LogLevel.ERROR, `VPN start request from ${source} has no profile uuid.`);
       return;
     }
-    this.connect(uuid, reason);
+    if (this.running && reason === 'otp-cr-text' && this.engine !== undefined) {
+      try {
+        this.engine.respondCrText(response);
+        return;
+      } catch (e) {
+        VpnStatus.logMessage(LogLevel.ERROR, 'Unable to submit CR_TEXT response');
+        return;
+      }
+    }
+    if (this.running && reason === 'otp') {
+      let oldEngine = this.engine;
+      this.running = false;
+      if (oldEngine !== undefined) {
+        oldEngine.stop().then(() => {
+          this.engine = undefined;
+          this.connect(uuid as string, reason, response, dynamicChallengeCookie);
+        }).catch(() => {
+          this.engine = undefined;
+          this.connect(uuid as string, reason, response, dynamicChallengeCookie);
+        });
+      } else {
+        this.connect(uuid, reason, response, dynamicChallengeCookie);
+      }
+      return;
+    }
+    if (this.running) {
+      VpnStatus.logMessage(LogLevel.DEBUG, `Ignoring duplicate VPN start from ${source}.`);
+      return;
+    }
+    this.connect(uuid, reason, response, dynamicChallengeCookie);
   }
 
   onDestroy(): void {
@@ -133,7 +173,8 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
     }
   }
 
-  private async connect(uuid: string, reason: string): Promise<void> {
+  private async connect(uuid: string, reason: string, response: string = '',
+    dynamicChallengeCookie: string = ''): Promise<void> {
     this.running = true;
     VpnStatus.setConnectedVPNProfile(uuid);
     VpnStatus.logMessage(LogLevel.INFO, `Starting VPN, reason: ${reason}`);
@@ -157,6 +198,21 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
     }
 
     // 2. missing credentials?
+    if (profile.mStaticChallenge !== '' && response === '' && dynamicChallengeCookie === '') {
+      let pending = new PendingAuthChallenge();
+      pending.uuid = uuid;
+      pending.kind = 'static';
+      pending.challenge = profile.mStaticChallenge;
+      pending.echo = profile.mStaticChallengeEcho;
+      pending.responseRequired = true;
+      pending.expiresAt = Date.now() + 120000;
+      VpnController.writePendingAuthChallenge(pending);
+      VpnStatus.updateStateString('USER_INPUT', 'Waiting for one-time password',
+        ConnectionStatus.LEVEL_WAITING_FOR_USER_INPUT);
+      this.terminate();
+      return;
+    }
+
     let missingPw = profile.needUserPWInputStr();
     if (missingPw !== '') {
       VpnStatus.updateStateString('USER_INPUT', 'Waiting for user input (missing credentials in profile settings)',
@@ -196,7 +252,11 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
       await this.engine.start({
         content: configText,
         username: profile.mUsername === undefined ? '' : profile.mUsername,
-        password: profile.mPassword === undefined ? '' : profile.mPassword
+        password: profile.mPassword === undefined ? '' : profile.mPassword,
+        response: response,
+        dynamicChallengeCookie: dynamicChallengeCookie,
+        ssoMethods: 'webauth,crtext',
+        info: true
       });
       if (this.running) {
         VpnStatus.logMessage(LogLevel.INFO, 'OpenVPN3 engine started. Waiting for connection events.');

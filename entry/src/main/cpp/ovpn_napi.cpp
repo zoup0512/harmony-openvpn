@@ -6,6 +6,7 @@
  *   attach(cb)                      register event callback (log/event/tun_establish_req/done)
  *   startTunnel(opts)               eval config and connect on a worker thread
  *   stopTunnel()                    stop the running connection
+ *   respondCrText({response})       answer an active CR_TEXT request
  *   resolveTunEstablish(fd)         answer a tun_establish_req with the TUN fd
  *
  * TUN model: the core calls tun_builder_* callbacks while establishing the
@@ -26,6 +27,7 @@
 #include <vector>
 
 #include "client/ovpncli.hpp" // public interface (declarations only)
+#include "openvpn/common/base64.hpp"
 
 // Route all core logging through the LogReceiver callbacks, exactly like
 // client/ovpncli.cpp does — must be configured before any header that uses
@@ -48,11 +50,17 @@ struct EvMsg {
     std::string info;
     bool error = false;
     bool fatal = false;
+    bool hasDynamicChallenge = false;
+    ClientAPI::DynamicChallenge dynamicChallenge;
+    // Transient callback data only; never put this value in info/log output.
+    std::string dynamicChallengeCookie;
 };
 
 napi_threadsafe_function g_tsfn = nullptr;
 std::thread g_worker;
 std::atomic<bool> g_running{false};
+std::atomic<bool> g_client_ready{false};
+std::mutex g_client_mtx; // protects the client pointer during start/stop/event callbacks
 
 // TUN establish handshake (worker thread <-> ArkTS)
 std::mutex g_tun_mtx;
@@ -68,7 +76,36 @@ void emit(std::string type, std::string name, std::string info,
     if (g_tsfn == nullptr) {
         return;
     }
-    EvMsg *m = new EvMsg{std::move(type), std::move(name), std::move(info), error, fatal};
+    EvMsg *m = new EvMsg;
+    m->type = std::move(type);
+    m->name = std::move(name);
+    m->info = std::move(info);
+    m->error = error;
+    m->fatal = fatal;
+    napi_call_threadsafe_function(g_tsfn, m, napi_tsfn_nonblocking);
+}
+
+void emit_event(const ClientAPI::Event &ev)
+{
+    if (g_tsfn == nullptr) {
+        return;
+    }
+    EvMsg *m = new EvMsg;
+    m->type = "event";
+    m->name = ev.name;
+    m->info = ev.info;
+    m->error = ev.error;
+    m->fatal = ev.fatal;
+    if (ev.name == "DYNAMIC_CHALLENGE") {
+        m->hasDynamicChallenge =
+            ClientAPI::OpenVPNClientHelper::parse_dynamic_challenge(ev.info, m->dynamicChallenge);
+        // A dynamic challenge's raw CRV1 value is a credential-bearing cookie.
+        // Keep it out of the generic event info field, which callers may log.
+        m->info.clear();
+        if (m->hasDynamicChallenge) {
+            m->dynamicChallengeCookie = ev.info;
+        }
+    }
     napi_call_threadsafe_function(g_tsfn, m, napi_tsfn_nonblocking);
 }
 
@@ -90,6 +127,21 @@ void call_js(napi_env env, napi_value js_cb, void * /*context*/, void *data)
     napi_set_named_property(env, obj, "error", v);
     napi_get_boolean(env, m->fatal, &v);
     napi_set_named_property(env, obj, "fatal", v);
+    if (m->hasDynamicChallenge) {
+        napi_value dc;
+        napi_create_object(env, &dc);
+        napi_create_string_utf8(env, m->dynamicChallenge.challenge.c_str(), NAPI_AUTO_LENGTH, &v);
+        napi_set_named_property(env, dc, "challenge", v);
+        napi_get_boolean(env, m->dynamicChallenge.echo, &v);
+        napi_set_named_property(env, dc, "echo", v);
+        napi_get_boolean(env, m->dynamicChallenge.responseRequired, &v);
+        napi_set_named_property(env, dc, "responseRequired", v);
+        napi_create_string_utf8(env, m->dynamicChallenge.stateID.c_str(), NAPI_AUTO_LENGTH, &v);
+        napi_set_named_property(env, dc, "stateID", v);
+        napi_create_string_utf8(env, m->dynamicChallengeCookie.c_str(), NAPI_AUTO_LENGTH, &v);
+        napi_set_named_property(env, dc, "cookie", v);
+        napi_set_named_property(env, obj, "dynamicChallenge", dc);
+    }
     napi_call_function(env, undefined, js_cb, 1, &obj, nullptr);
     delete m;
 }
@@ -114,7 +166,15 @@ class NapiClient : public ClientAPI::OpenVPNClient {
 
     void event(const ClientAPI::Event &ev) override
     {
-        emit("event", ev.name, ev.info, ev.error, ev.fatal);
+        // OpenVPN3 delivers this callback from its connection thread after the
+        // client has enabled foreign-thread access. This is the safe lifetime
+        // window for respondCrText() to post a control-channel message.
+        if (ev.name == "DISCONNECTED" || ev.name == "EXITING") {
+            g_client_ready = false;
+        } else {
+            g_client_ready = true;
+        }
+        emit_event(ev);
     }
 
     void acc_event(const ClientAPI::AppCustomControlMessageEvent &) override
@@ -356,6 +416,19 @@ bool read_str_prop(napi_env env, napi_value obj, const char *name, std::string &
     return true;
 }
 
+bool read_bool_prop(napi_env env, napi_value obj, const char *name, bool &out)
+{
+    napi_value v;
+    if (napi_get_named_property(env, obj, name, &v) != napi_ok) {
+        return false;
+    }
+    napi_valuetype t;
+    if (napi_typeof(env, v, &t) != napi_ok || t != napi_boolean) {
+        return false;
+    }
+    return napi_get_value_bool(env, v, &out) == napi_ok;
+}
+
 napi_value Attach(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
@@ -385,10 +458,22 @@ napi_value StartTunnel(napi_env env, napi_callback_info info)
     std::string content;
     std::string username;
     std::string password;
+    std::string response;
+    std::string dynamicChallengeCookie;
+    std::string ssoMethods = "webauth,crtext";
+    bool infoEnabled = true;
     if (argc >= 1 && argv[0] != nullptr) {
         read_str_prop(env, argv[0], "content", content);
         read_str_prop(env, argv[0], "username", username);
         read_str_prop(env, argv[0], "password", password);
+        read_str_prop(env, argv[0], "response", response);
+        read_str_prop(env, argv[0], "dynamicChallengeCookie", dynamicChallengeCookie);
+        std::string configuredSsoMethods;
+        if (read_str_prop(env, argv[0], "ssoMethods", configuredSsoMethods) &&
+            !configuredSsoMethods.empty()) {
+            ssoMethods = configuredSsoMethods;
+        }
+        read_bool_prop(env, argv[0], "info", infoEnabled);
     }
 
     napi_value result;
@@ -404,11 +489,17 @@ napi_value StartTunnel(napi_env env, napi_callback_info info)
         return result;
     }
     auto *client = new NapiClient();
-    g_client = client;
+    {
+        std::lock_guard<std::mutex> lock(g_client_mtx);
+        g_client = client;
+        g_client_ready = false;
+    }
 
     ClientAPI::Config config;
     config.content = content;
     config.guiVersion = "harmony-openvpn 1.0";
+    config.ssoMethods = ssoMethods;
+    config.info = infoEnabled;
     config.connTimeout = 0;
     config.tunPersist = false;
     config.compressionMode = "yes";
@@ -416,8 +507,14 @@ napi_value StartTunnel(napi_env env, napi_callback_info info)
     ClientAPI::EvalConfig eval = client->eval_config(config);
     if (eval.error) {
         emit("log", "", "eval_config error: " + eval.message);
-        delete client;
-        g_client = nullptr;
+        {
+            std::lock_guard<std::mutex> lock(g_client_mtx);
+            delete client;
+            if (g_client == client) {
+                g_client = nullptr;
+            }
+            g_client_ready = false;
+        }
         g_running = false;
         napi_get_boolean(env, false, &okv);
         napi_create_string_utf8(env, eval.message.c_str(), NAPI_AUTO_LENGTH, &errv);
@@ -426,22 +523,31 @@ napi_value StartTunnel(napi_env env, napi_callback_info info)
         return result;
     }
 
-    if (!username.empty() || !password.empty()) {
+    if (!username.empty() || !password.empty() || !response.empty() ||
+        !dynamicChallengeCookie.empty()) {
         ClientAPI::ProvideCreds creds;
         creds.username = username;
         creds.password = password;
+        creds.response = response;
+        creds.dynamicChallengeCookie = dynamicChallengeCookie;
         ClientAPI::Status st = client->provide_creds(creds);
         if (st.error) {
             emit("log", "", "provide_creds error: " + st.message);
         }
     }
 
-    g_worker = std::thread([]() {
-        auto *c = static_cast<NapiClient *>(g_client);
+    g_worker = std::thread([client]() {
+        auto *c = client;
         ClientAPI::Status st = c->connect();
+        g_client_ready = false;
         emit("done", st.error ? "error" : "ok", st.message, st.error);
-        delete c;
-        g_client = nullptr;
+        {
+            std::lock_guard<std::mutex> lock(g_client_mtx);
+            delete c;
+            if (g_client == c) {
+                g_client = nullptr;
+            }
+        }
         g_running = false;
     });
     g_worker.detach();
@@ -455,9 +561,11 @@ napi_value StartTunnel(napi_env env, napi_callback_info info)
 
 napi_value StopTunnel(napi_env, napi_callback_info)
 {
-    ClientAPI::OpenVPNClient *c = g_client;
-    if (c != nullptr) {
-        c->stop();
+    {
+        std::lock_guard<std::mutex> lock(g_client_mtx);
+        if (g_client != nullptr) {
+            g_client->stop();
+        }
     }
     {
         // unblock a pending tun establish wait
@@ -468,6 +576,46 @@ napi_value StopTunnel(napi_env, napi_callback_info)
     }
     g_tun_cv.notify_all();
     return nullptr;
+}
+
+napi_value RespondCrText(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value argv[1];
+    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+
+    napi_value result;
+    napi_create_object(env, &result);
+    napi_value okv;
+    napi_value errv;
+    std::string response;
+    bool ok = argc >= 1 && read_str_prop(env, argv[0], "response", response);
+    std::string error;
+    if (!ok) {
+        error = "respondCrText requires a response string";
+    } else if (!g_running.load()) {
+        error = "respondCrText unsupported: no active OpenVPN client";
+    } else if (!g_client_ready.load()) {
+        error = "respondCrText unsupported: OpenVPN control channel is not ready";
+    } else {
+        // OpenVPN3's CR_TEXT protocol expects a base64 encoded response. The
+        // ClientAPI post_cc_msg() wrapper posts to the connection io_context
+        // and is safe from this NAPI thread during the active client lifetime.
+        std::lock_guard<std::mutex> lock(g_client_mtx);
+        if (g_client == nullptr || !g_client_ready.load()) {
+            error = "respondCrText unsupported: OpenVPN client is not active";
+        } else {
+            Base64 base64;
+            g_client->post_cc_msg("CR_RESPONSE," + base64.encode(response));
+            ok = true;
+        }
+    }
+
+    napi_get_boolean(env, ok && error.empty(), &okv);
+    napi_create_string_utf8(env, error.c_str(), NAPI_AUTO_LENGTH, &errv);
+    napi_set_named_property(env, result, "ok", okv);
+    napi_set_named_property(env, result, "error", errv);
+    return result;
 }
 
 napi_value ResolveTunEstablish(napi_env env, napi_callback_info info)
@@ -499,6 +647,7 @@ static napi_value Init(napi_env env, napi_value exports)
         {"attach", nullptr, Attach, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"startTunnel", nullptr, StartTunnel, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"stopTunnel", nullptr, StopTunnel, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"respondCrText", nullptr, RespondCrText, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"resolveTunEstablish", nullptr, ResolveTunEstablish, nullptr, nullptr, nullptr, napi_default, nullptr},
     };
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);

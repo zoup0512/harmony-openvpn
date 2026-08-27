@@ -120,6 +120,9 @@ export class VpnProfile {
   mExcludedRoutesv6?: string;
   mMssFix: number = 0;
   mConnections: Connection[] = [];
+  mServerOverride: string = '';
+  mStaticChallenge: string = '';
+  mStaticChallengeEcho: boolean = false;
   mRemoteRandom: boolean = false;
   mAllowedAppsVpn: Set<string> = new Set<string>();
   mAllowedAppsVpnAreDisallowed: boolean = true;
@@ -537,6 +540,9 @@ export class VpnProfile {
       'mAllowLocalLAN': this.mAllowLocalLAN,
       'mMssFix': this.mMssFix,
       'mConnections': conns,
+      'mServerOverride': this.mServerOverride,
+      'mStaticChallenge': this.mStaticChallenge,
+      'mStaticChallengeEcho': this.mStaticChallengeEcho,
       'mRemoteRandom': this.mRemoteRandom,
       'mAllowedAppsVpn': apps,
       'mAllowedAppsVpnAreDisallowed': this.mAllowedAppsVpnAreDisallowed,
@@ -659,6 +665,9 @@ export class VpnProfile {
     p.mX509AuthType = (o['mX509AuthType'] as number) ?? VpnProfile.X509_VERIFY_TLSREMOTE_RDN;
     p.mAllowLocalLAN = (o['mAllowLocalLAN'] as boolean) ?? false;
     p.mMssFix = (o['mMssFix'] as number) ?? 0;
+    p.mServerOverride = (o['mServerOverride'] as string) ?? '';
+    p.mStaticChallenge = (o['mStaticChallenge'] as string) ?? '';
+    p.mStaticChallengeEcho = (o['mStaticChallengeEcho'] as boolean) ?? false;
     p.mRemoteRandom = (o['mRemoteRandom'] as boolean) ?? false;
     p.mAllowedAppsVpnAreDisallowed = (o['mAllowedAppsVpnAreDisallowed'] as boolean) ?? true;
     p.mAllowAppVpnBypass = (o['mAllowAppVpnBypass'] as boolean) ?? false;

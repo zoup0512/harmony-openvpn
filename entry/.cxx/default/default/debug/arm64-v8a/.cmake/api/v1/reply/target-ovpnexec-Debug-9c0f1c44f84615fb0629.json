@@ -41,19 +41,19 @@
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 62,
+				"line" : 61,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 55,
+				"line" : 54,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 0,
-				"line" : 44,
+				"line" : 43,
 				"parent" : 0
 			},
 			{
@@ -97,7 +97,7 @@
 			{
 				"command" : 9,
 				"file" : 0,
-				"line" : 64,
+				"line" : 63,
 				"parent" : 0
 			}
 		]
@@ -164,10 +164,6 @@
 				{
 					"backtrace" : 5,
 					"define" : "OPENVPN_CORE_GIT_VERSION=\"harmony-openvpn-openvpn3\""
-				},
-				{
-					"backtrace" : 5,
-					"define" : "OPENVPN_SHOW_SESSION_TOKEN"
 				},
 				{
 					"backtrace" : 5,
@@ -295,10 +291,6 @@
 				{
 					"backtrace" : 5,
 					"define" : "OPENVPN_CORE_GIT_VERSION=\"harmony-openvpn-openvpn3\""
-				},
-				{
-					"backtrace" : 5,
-					"define" : "OPENVPN_SHOW_SESSION_TOKEN"
 				},
 				{
 					"backtrace" : 5,

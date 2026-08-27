@@ -37,7 +37,6 @@ target_compile_definitions(ovpnexec PRIVATE
     HAVE_LZ4
     FMT_HEADER_ONLY
     OPENVPN_CORE_GIT_VERSION="harmony-openvpn-openvpn3"
-    OPENVPN_SHOW_SESSION_TOKEN
     OPENVPN_ALLOW_INSECURE_CERTPROFILE
 )
 

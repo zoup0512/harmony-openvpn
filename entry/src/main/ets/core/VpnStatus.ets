@@ -208,9 +208,15 @@ export class VpnStatus {
         return ConnectionStatus.LEVEL_CONNECTING_SERVER_REPLIED;
       case 'CONNECTED':
         return ConnectionStatus.LEVEL_CONNECTED;
+      case 'SESSION_EXPIRED':
+      case 'AUTH_FAILED':
+        return ConnectionStatus.LEVEL_AUTH_FAILED;
       case 'DISCONNECTED':
       case 'EXITING':
+      case 'NOPROCESS':
         return ConnectionStatus.LEVEL_NOTCONNECTED;
+      case 'USER_INPUT':
+        return ConnectionStatus.LEVEL_WAITING_FOR_USER_INPUT;
       default:
         return ConnectionStatus.UNKNOWN_LEVEL;
     }

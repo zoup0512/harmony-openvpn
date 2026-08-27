@@ -145,6 +145,10 @@
       "value": "已断开"
     },
     {
+      "name": "state_connected",
+      "value": "已连接"
+    },
+    {
       "name": "copy_of_profile",
       "value": "%s 的副本"
     },
@@ -187,6 +191,50 @@
     {
       "name": "import_error_message",
       "value": "导入配置文件时发生错误"
+    },
+    {
+      "name": "import_otp_title",
+      "value": "服务器挑战响应"
+    },
+    {
+      "name": "import_otp_message",
+      "value": "请输入服务器要求的一次性密码。\n挑战：%s"
+    },
+    {
+      "name": "import_otp_placeholder",
+      "value": "一次性密码"
+    },
+    {
+      "name": "import_otp_empty",
+      "value": "请输入一次性密码"
+    },
+    {
+      "name": "import_otp_failed",
+      "value": "一次性密码验证失败"
+    },
+    {
+      "name": "otp_title",
+      "value": "需要二次验证"
+    },
+    {
+      "name": "otp_message",
+      "value": "请输入服务器要求的一次性验证码。验证码不会保存。"
+    },
+    {
+      "name": "otp_placeholder",
+      "value": "OTP 验证码"
+    },
+    {
+      "name": "otp_required",
+      "value": "请输入 OTP 验证码"
+    },
+    {
+      "name": "otp_retrying",
+      "value": "正在提交验证码…"
+    },
+    {
+      "name": "submit",
+      "value": "提交"
     },
     {
       "name": "error_importing_file",
@@ -1379,6 +1427,162 @@
     {
       "name": "pkcs12pwquery",
       "value": "PKCS12 密码"
+    },
+    {
+      "name": "about_usage_title",
+      "value": "详细使用说明"
+    },
+    {
+      "name": "about_usage_step1",
+      "value": "1. 先在“配置”页导入或选择 .ovpn/.conf 配置，再到“连接”页启动 VPN。"
+    },
+    {
+      "name": "about_usage_step2",
+      "value": "2. 本应用不内置服务器、账号或线路；OpenVPN 配置由用户自行提供和管理。"
+    },
+    {
+      "name": "about_usage_step3",
+      "value": "3. 请仅连接你拥有权限的服务器或公司网络，并遵守所在地法律法规及网络服务条款。"
+    },
+    {
+      "name": "about_usage_warning",
+      "value": "禁止将本应用用于违法犯罪、攻击入侵、诈骗、侵权、传播违法信息或绕过法律法规监管等用途。"
+    },
+    {
+      "name": "about_donate_title",
+      "value": "打赏"
+    },
+    {
+      "name": "about_pay_title",
+      "value": "推荐使用微信支付"
+    },
+    {
+      "name": "about_pay_name",
+      "value": "kinxl(**伦)"
+    },
+    {
+      "name": "about_pay_brand",
+      "value": "微信支付"
+    },
+    {
+      "name": "about_pay_save_hint",
+      "value": "长按二维码保存照片"
+    },
+    {
+      "name": "about_pay_thanks",
+      "value": "感谢支持，打赏完全自愿，不影响应用任何功能。"
+    },
+    {
+      "name": "about_feedback_title",
+      "value": "问题反馈"
+    },
+    {
+      "name": "about_feedback_intro",
+      "value": "如遇到连接、配置、界面显示或审核相关问题，请通过以下邮箱反馈。"
+    },
+    {
+      "name": "about_feedback_email",
+      "value": "247900871@qq.com"
+    },
+    {
+      "name": "about_feedback_copy_hint",
+      "value": "长按邮箱复制"
+    },
+    {
+      "name": "about_feedback_advice",
+      "value": "反馈时建议附上：当前配置、连接时间、诊断信息和 Native 摘要，避免附带真实密码。"
+    },
+    {
+      "name": "about_email_copied",
+      "value": "邮箱已复制"
+    },
+    {
+      "name": "profile_edit",
+      "value": "编辑配置"
+    },
+    {
+      "name": "save",
+      "value": "保存"
+    },
+    {
+      "name": "server_hostname_locked",
+      "value": "服务器主机名（已锁定）"
+    },
+    {
+      "name": "server_override_optional",
+      "value": "服务器覆盖地址（可选）"
+    },
+    {
+      "name": "save_password",
+      "value": "保存密码"
+    },
+    {
+      "name": "save_password_title",
+      "value": "保存密码"
+    },
+    {
+      "name": "save_password_message",
+      "value": "请输入要随此配置保存的密码。"
+    },
+    {
+      "name": "password_placeholder",
+      "value": "密码"
+    },
+    {
+      "name": "profile_id",
+      "value": "配置 ID"
+    },
+    {
+      "name": "profile_id_description",
+      "value": "此配置的唯一标识符"
+    },
+    {
+      "name": "advanced_settings",
+      "value": "高级设置"
+    },
+    {
+      "name": "set_connect_shortcut",
+      "value": "设置连接快捷方式"
+    },
+    {
+      "name": "delete_profile",
+      "value": "删除配置"
+    },
+    {
+      "name": "add_proxy",
+      "value": "添加代理"
+    },
+    {
+      "name": "profile_id_copied",
+      "value": "配置 ID 已复制"
+    },
+    {
+      "name": "profile_copy_failed",
+      "value": "无法复制配置 ID"
+    },
+    {
+      "name": "profile_name_required",
+      "value": "配置名称不能为空"
+    },
+    {
+      "name": "profile_not_found",
+      "value": "未找到配置"
+    },
+    {
+      "name": "profile_save_failed",
+      "value": "无法保存配置"
+    },
+    {
+      "name": "profile_saved",
+      "value": "配置已保存"
+    },
+    {
+      "name": "shortcut_created",
+      "value": "连接快捷方式已创建"
+    },
+    {
+      "name": "shortcut_failed",
+      "value": "无法创建连接快捷方式"
     }
   ]
 }

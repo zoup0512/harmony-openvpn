@@ -121,7 +121,7 @@ struct LogWindow {
     }
     let params: Record<string, Object> = { 'uuid': uuid };
     let opt: router.RouterOptions = {
-      url: 'pages/VPNPreferences',
+      url: 'pages/ProfileEdit',
       params: params
     };
     router.pushUrl(opt);

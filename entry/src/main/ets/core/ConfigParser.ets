@@ -685,6 +685,13 @@ export class ConfigParser {
       }
     }
 
+    let staticChallenge = this.getOption('static-challenge', 1, 2);
+    if (staticChallenge !== undefined) {
+      np.mStaticChallenge = staticChallenge[1];
+      np.mStaticChallengeEcho = staticChallenge.length > 2 && staticChallenge[2] === '1';
+      this.options.delete('static-challenge');
+    }
+
     let authretry = this.getOption('auth-retry', 1, 1);
     if (authretry !== undefined) {
       if (authretry[1] === 'none') {

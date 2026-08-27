@@ -18,6 +18,8 @@ export class InputDialogModel {
   neutralText: string = '';
   onOk: (text: string) => void = () => {
   };
+  onCancel: () => void = () => {
+  };
   onNeutral: () => void = () => {
   };
 }
@@ -81,6 +83,7 @@ export struct InputDialog {
           .fontColor(Theme.PRIMARY)
           .onClick(() => {
             this.controller?.close();
+            this.model.onCancel();
           })
         Button(this.model.okText)
           .fontSize(14)

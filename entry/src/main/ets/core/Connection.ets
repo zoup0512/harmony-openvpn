@@ -59,12 +59,14 @@ export class Connection {
     return this.mConnectTimeout;
   }
 
-  getConnectionBlock(isOpenVPN3: boolean): string {
+  getConnectionBlock(isOpenVPN3: boolean, serverNameOverride?: string): string {
     let cfg = '';
+    let serverName = serverNameOverride === undefined || serverNameOverride === '' ?
+      this.mServerName : serverNameOverride;
 
     // Server Address
     cfg += 'remote ';
-    cfg += this.mServerName;
+    cfg += serverName;
     cfg += ' ';
     cfg += this.mServerPort;
     if (this.mUseUdp) {

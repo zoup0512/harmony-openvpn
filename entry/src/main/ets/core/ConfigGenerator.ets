@@ -89,9 +89,10 @@ export function generateConfigFile(p: VpnProfile, env: GenEnvInfo): string {
   cfg += 'dev tun\n';
 
   let canUsePlainRemotes = true;
+  let serverOverride = p.mServerOverride.trim();
 
   if (p.mConnections.length === 1) {
-    cfg += p.mConnections[0].getConnectionBlock(false);
+    cfg += p.mConnections[0].getConnectionBlock(env.openVpn3, serverOverride);
   } else {
     for (let conn of p.mConnections) {
       canUsePlainRemotes = canUsePlainRemotes && conn.isOnlyRemote();
@@ -104,10 +105,14 @@ export function generateConfigFile(p: VpnProfile, env: GenEnvInfo): string {
     if (canUsePlainRemotes) {
       for (let conn of p.mConnections) {
         if (conn.mEnabled) {
-          cfg += conn.getConnectionBlock(false);
+          cfg += conn.getConnectionBlock(env.openVpn3, serverOverride);
         }
       }
     }
+  }
+
+  if (!VpnProfile.isEmpty(p.mStaticChallenge)) {
+    cfg += `static-challenge ${VpnProfile.openVpnEscape(p.mStaticChallenge)} ${p.mStaticChallengeEcho ? '1' : '0'}\n`;
   }
 
   switch (p.mAuthenticationType) {
@@ -323,7 +328,7 @@ export function generateConfigFile(p: VpnProfile, env: GenEnvInfo): string {
   }
 
   // Obscure Settings dialog
-  if (p.mUseRandomHostname) {
+  if (p.mUseRandomHostname && serverOverride === '') {
     cfg += '#my favorite options :)\nremote-random-hostname\n';
   }
 
@@ -358,7 +363,7 @@ export function generateConfigFile(p: VpnProfile, env: GenEnvInfo): string {
     for (let conn of p.mConnections) {
       if (conn.mEnabled) {
         cfg += '<connection>\n';
-        cfg += conn.getConnectionBlock(false);
+        cfg += conn.getConnectionBlock(env.openVpn3, serverOverride);
         cfg += '</connection>\n';
       }
     }

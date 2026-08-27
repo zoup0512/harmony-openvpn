@@ -7,26 +7,26 @@ import { router, promptAction } from '@kit.ArkUI';
 import { Theme } from '../common/Theme';
 import { R } from '../common/Res';
 import { GP } from '../common/GP';
-import { VpnProfile } from '../core/VpnProfile';
-import { ProfileManager } from '../core/ProfileManager';
 import { FileUtil } from '../common/FileUtil';
-import { InputDialog, InputDialogModel } from '../components/InputDialog';
 import { ImportASDialog } from '../components/dialogs/ImportASDialog';
 import { ProfilesTab } from '../components/tabs/ProfilesTab';
 import { GraphTab } from '../components/tabs/GraphTab';
 import { SettingsTab } from '../components/tabs/SettingsTab';
 import { FaqTab } from '../components/tabs/FaqTab';
-import { AboutTab } from '../components/tabs/AboutTab';
+import { InputDialog, InputDialogModel } from '../components/InputDialog';
+import { VpnController, PendingAuthChallenge } from '../vpn/VpnController';
 
 @Entry
 @Component
 struct Index {
   @State currentIndex: number = 0;
   @State sortTick: number = 0;
-  private addModel: InputDialogModel = new InputDialogModel();
-  private addDialogController: CustomDialogController = new CustomDialogController({
-    builder: InputDialog({ model: this.addModel }),
-    autoCancel: true,
+  private authTimerId: number = -1;
+  private activeAuthExpiresAt: number = 0;
+  private authModel: InputDialogModel = new InputDialogModel();
+  private authDialogController: CustomDialogController = new CustomDialogController({
+    builder: InputDialog({ model: this.authModel }),
+    autoCancel: false,
     customStyle: true
   });
   private asDialogController: CustomDialogController = new CustomDialogController({
@@ -40,6 +40,74 @@ struct Index {
     if (ctx !== undefined) {
       R.init(ctx);
     }
+    this.authTimerId = setInterval(() => {
+      this.checkPendingAuth();
+    }, 500) as number;
+  }
+
+  aboutToDisappear(): void {
+    if (this.authTimerId !== -1) {
+      clearInterval(this.authTimerId);
+      this.authTimerId = -1;
+    }
+  }
+
+  private checkPendingAuth(): void {
+    let challenge = VpnController.readPendingAuthChallenge();
+    if (challenge === undefined || challenge.expiresAt <= Date.now()) {
+      return;
+    }
+    if (this.activeAuthExpiresAt === challenge.expiresAt) {
+      return;
+    }
+    let pending = new PendingAuthChallenge();
+    pending.uuid = challenge.uuid;
+    pending.kind = challenge.kind;
+    pending.challenge = challenge.challenge;
+    pending.echo = challenge.echo;
+    pending.responseRequired = challenge.responseRequired;
+    pending.cookie = challenge.cookie;
+    pending.expiresAt = challenge.expiresAt;
+    this.activeAuthExpiresAt = pending.expiresAt;
+    this.authModel.title = R.s('otp_title');
+    this.authModel.message = pending.challenge === '' ? R.s('otp_message') : pending.challenge;
+    this.authModel.placeholder = R.s('otp_placeholder');
+    this.authModel.initial = '';
+    this.authModel.isPassword = !pending.echo;
+    this.authModel.okText = R.s('submit');
+    this.authModel.cancelText = R.s('cancel');
+    this.authModel.neutralText = '';
+    this.authModel.onOk = (value: string) => {
+      this.submitPendingAuth(pending, value);
+    };
+    this.authModel.onCancel = () => {
+      VpnController.clearPendingAuthChallenge();
+      this.activeAuthExpiresAt = 0;
+      VpnController.stopVpn().catch(() => {
+      });
+    };
+    this.authDialogController.open();
+  }
+
+  private submitPendingAuth(challenge: PendingAuthChallenge, value: string): void {
+    let response = value.trim();
+    if (response === '') {
+      promptAction.showToast({ message: R.s('otp_required') });
+      return;
+    }
+    VpnController.clearPendingAuthChallenge();
+    this.activeAuthExpiresAt = 0;
+    if (challenge.kind === 'cr_text') {
+      promptAction.showToast({ message: R.s('otp_retrying') });
+      // CR_TEXT is handled by the live native client when the extension remains active.
+      // If the extension has already ended, the normal retry path is used instead.
+      VpnController.startVpn(challenge.uuid, 'otp-cr-text', response, '', 'cr_text').catch(() => {
+      });
+      return;
+    }
+    promptAction.showToast({ message: R.s('otp_retrying') });
+    VpnController.startVpn(challenge.uuid, 'otp', response, challenge.cookie, challenge.kind).catch(() => {
+    });
   }
 
   private changeSorting(): void {
@@ -49,39 +117,6 @@ struct Index {
       message: byLru ? R.s('sorted_lru') : R.s('sorted_az')
     });
     this.sortTick++;
-  }
-
-  private openAddProfileDialog(): void {
-    this.addModel.title = R.s('menu_add_profile');
-    this.addModel.message = R.s('add_profile_name_prompt');
-    this.addModel.placeholder = R.s('name_of_the_vpn_profile');
-    this.addModel.initial = '';
-    this.addModel.okText = R.s('ok');
-    this.addModel.cancelText = R.s('cancel');
-    this.addModel.neutralText = R.s('menu_import_short');
-    this.addModel.onOk = (text: string) => {
-      this.addProfileNamed(text);
-    };
-    this.addModel.onNeutral = () => {
-      this.importConfigFile();
-    };
-    this.addDialogController.open();
-  }
-
-  private addProfileNamed(name: string): void {
-    if (name === undefined || name === '') {
-      promptAction.showToast({ message: R.s('duplicate_profile_name') });
-      return;
-    }
-    if (ProfileManager.getProfileByName(name) !== undefined && ProfileManager.getProfileByName(name) !== null) {
-      promptAction.showToast({ message: R.s('duplicate_profile_name') });
-      return;
-    }
-    let profile = new VpnProfile(name);
-    ProfileManager.addProfile(profile);
-    profile.addChangeLogEntry('empty profile added via main profile list');
-    ProfileManager.saveProfile(profile);
-    this.editVPN(profile.getUUID());
   }
 
   private importConfigFile(): void {
@@ -99,15 +134,6 @@ struct Index {
     });
   }
 
-  private editVPN(uuid: string): void {
-    let params: Record<string, Object> = { 'uuid': uuid };
-    let opt: router.RouterOptions = {
-      url: 'pages/VPNPreferences',
-      params: params
-    };
-    router.pushUrl(opt);
-  }
-
   private tabTitle(i: number): string {
     switch (i) {
       case 0:
@@ -118,8 +144,6 @@ struct Index {
         return R.s('generalsettings');
       case 3:
         return R.s('faq');
-      case 4:
-        return R.s('about');
       default:
         return '';
     }
@@ -138,12 +162,6 @@ struct Index {
           .padding({ left: 16 })
 
         if (this.currentIndex === 0) {
-          Image($r('app.media.ic_add'))
-            .width(24).height(24).fillColor(Color.White)
-            .margin({ left: 12 })
-            .onClick(() => {
-              this.openAddProfileDialog();
-            })
           Image($r('app.media.ic_import'))
             .width(24).height(24).fillColor(Color.White)
             .margin({ left: 16 })
@@ -166,9 +184,18 @@ struct Index {
 
         Image($r('app.media.ic_receipt'))
           .width(24).height(24).fillColor(Color.White)
-          .margin({ left: 16, right: 16 })
+          .margin({ left: 16 })
           .onClick(() => {
             router.pushUrl({ url: 'pages/LogWindow' });
+          })
+
+        Image($r('app.media.ic_info'))
+          .width(24)
+          .height(24)
+          .fillColor(Color.White)
+          .margin({ left: 16, right: 16 })
+          .onClick(() => {
+            router.pushUrl({ url: 'pages/About' });
           })
       }
       .width('100%')
@@ -178,7 +205,7 @@ struct Index {
 
       // ---- Tab bar ----
       Row() {
-        ForEach([0, 1, 2, 3, 4], (i: number) => {
+        ForEach([0, 1, 2, 3], (i: number) => {
           Column() {
             Text(this.tabTitle(i))
               .fontSize(14)
@@ -217,11 +244,6 @@ struct Index {
 
         TabContent() {
           FaqTab()
-        }
-        .tabBar('')
-
-        TabContent() {
-          AboutTab()
         }
         .tabBar('')
       }

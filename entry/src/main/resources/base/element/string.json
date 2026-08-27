@@ -145,6 +145,10 @@
       "value": "Disconnected"
     },
     {
+      "name": "state_connected",
+      "value": "Connected"
+    },
+    {
       "name": "copy_of_profile",
       "value": "Copy of %s"
     },
@@ -187,6 +191,50 @@
     {
       "name": "import_error_message",
       "value": "An error occurred while importing the profile"
+    },
+    {
+      "name": "import_otp_title",
+      "value": "Server challenge response"
+    },
+    {
+      "name": "import_otp_message",
+      "value": "Enter the one-time password requested by the server.\nChallenge: %s"
+    },
+    {
+      "name": "import_otp_placeholder",
+      "value": "One-time password"
+    },
+    {
+      "name": "import_otp_empty",
+      "value": "One-time password is required"
+    },
+    {
+      "name": "import_otp_failed",
+      "value": "The one-time password was rejected"
+    },
+    {
+      "name": "otp_title",
+      "value": "Additional verification required"
+    },
+    {
+      "name": "otp_message",
+      "value": "Enter the one-time password requested by the server. The code will not be saved."
+    },
+    {
+      "name": "otp_placeholder",
+      "value": "OTP code"
+    },
+    {
+      "name": "otp_required",
+      "value": "OTP code is required"
+    },
+    {
+      "name": "otp_retrying",
+      "value": "Submitting verification code…"
+    },
+    {
+      "name": "submit",
+      "value": "Submit"
     },
     {
       "name": "error_importing_file",
@@ -1379,6 +1427,162 @@
     {
       "name": "pkcs12pwquery",
       "value": "PKCS12 Password"
+    },
+    {
+      "name": "about_usage_title",
+      "value": "Detailed Instructions"
+    },
+    {
+      "name": "about_usage_step1",
+      "value": "1. Import or select an .ovpn/.conf configuration on the Configuration page, then start the VPN on the Connection page."
+    },
+    {
+      "name": "about_usage_step2",
+      "value": "2. This app does not include servers, accounts, or routes. OpenVPN configurations are provided and managed by users."
+    },
+    {
+      "name": "about_usage_step3",
+      "value": "3. Connect only to servers or company networks that you are authorized to use, and comply with local laws and network service terms."
+    },
+    {
+      "name": "about_usage_warning",
+      "value": "Do not use this app for crimes, attacks, fraud, infringement, spreading illegal information, or bypassing legal and regulatory oversight."
+    },
+    {
+      "name": "about_donate_title",
+      "value": "Donate"
+    },
+    {
+      "name": "about_pay_title",
+      "value": "WeChat Pay Recommended"
+    },
+    {
+      "name": "about_pay_name",
+      "value": "kinxl(**伦)"
+    },
+    {
+      "name": "about_pay_brand",
+      "value": "WeChat Pay"
+    },
+    {
+      "name": "about_pay_save_hint",
+      "value": "Long-press the QR code to save the image"
+    },
+    {
+      "name": "about_pay_thanks",
+      "value": "Thank you for your support. Tips are entirely voluntary and do not affect any app features."
+    },
+    {
+      "name": "about_feedback_title",
+      "value": "Feedback"
+    },
+    {
+      "name": "about_feedback_intro",
+      "value": "For connection, configuration, interface display, or review-related issues, contact us at the email below."
+    },
+    {
+      "name": "about_feedback_email",
+      "value": "247900871@qq.com"
+    },
+    {
+      "name": "about_feedback_copy_hint",
+      "value": "Long-press the email address to copy"
+    },
+    {
+      "name": "about_feedback_advice",
+      "value": "When reporting an issue, include the current configuration, connection time, diagnostic information, and Native summary. Do not include real passwords."
+    },
+    {
+      "name": "about_email_copied",
+      "value": "Email address copied"
+    },
+    {
+      "name": "profile_edit",
+      "value": "Edit Profile"
+    },
+    {
+      "name": "save",
+      "value": "Save"
+    },
+    {
+      "name": "server_hostname_locked",
+      "value": "Server Hostname (locked)"
+    },
+    {
+      "name": "server_override_optional",
+      "value": "Server Override (optional)"
+    },
+    {
+      "name": "save_password",
+      "value": "Save password"
+    },
+    {
+      "name": "save_password_title",
+      "value": "Save password"
+    },
+    {
+      "name": "save_password_message",
+      "value": "Enter the password to save with this profile."
+    },
+    {
+      "name": "password_placeholder",
+      "value": "Password"
+    },
+    {
+      "name": "profile_id",
+      "value": "Profile ID"
+    },
+    {
+      "name": "profile_id_description",
+      "value": "Unique identifier of this profile"
+    },
+    {
+      "name": "advanced_settings",
+      "value": "Advanced settings"
+    },
+    {
+      "name": "set_connect_shortcut",
+      "value": "SET CONNECT SHORTCUT"
+    },
+    {
+      "name": "delete_profile",
+      "value": "DELETE PROFILE"
+    },
+    {
+      "name": "add_proxy",
+      "value": "ADD PROXY"
+    },
+    {
+      "name": "profile_id_copied",
+      "value": "Profile ID copied"
+    },
+    {
+      "name": "profile_copy_failed",
+      "value": "Could not copy Profile ID"
+    },
+    {
+      "name": "profile_name_required",
+      "value": "Profile name is required"
+    },
+    {
+      "name": "profile_not_found",
+      "value": "Profile not found"
+    },
+    {
+      "name": "profile_save_failed",
+      "value": "Could not save profile"
+    },
+    {
+      "name": "profile_saved",
+      "value": "Profile saved"
+    },
+    {
+      "name": "shortcut_created",
+      "value": "Connect shortcut created"
+    },
+    {
+      "name": "shortcut_failed",
+      "value": "Could not create connect shortcut"
     }
   ]
 }

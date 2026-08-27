@@ -18,9 +18,11 @@ import { AuthTab } from '../components/settings/AuthTab';
 import { ObscureTab } from '../components/settings/ObscureTab';
 import { AllowedAppsTab } from '../components/settings/AllowedAppsTab';
 import { ShowConfigTab } from '../components/settings/ShowConfigTab';
+import { ProfileShortcut } from '../common/ProfileShortcut';
 
 interface RouteParams {
   uuid: string;
+  tab?: number;
 }
 
 @Entry
@@ -29,6 +31,7 @@ struct VPNPreferences {
   @State currentIndex: number = 0;
   profile: VpnProfile = new VpnProfile('unset');
   private loaded: boolean = false;
+  private skipSave: boolean = false;
   private barScroller: Scroller = new Scroller();
 
   aboutToAppear(): void {
@@ -38,6 +41,9 @@ struct VPNPreferences {
       if (p !== undefined && p !== null) {
         this.profile = p;
         this.loaded = true;
+        if (params.tab !== undefined && params.tab >= 0 && params.tab < 8) {
+          this.currentIndex = params.tab;
+        }
       }
     }
   }
@@ -47,13 +53,12 @@ struct VPNPreferences {
   }
 
   onBackPress(): boolean {
-    this.save();
     router.back();
     return true;
   }
 
   private save(): void {
-    if (!this.loaded) {
+    if (!this.loaded || this.skipSave) {
       return;
     }
     ProfileManager.saveProfile(this.profile);
@@ -95,7 +100,15 @@ struct VPNPreferences {
         value: R.s('yes'),
         fontColor: Theme.WARNING_RED,
         action: () => {
-          ProfileManager.removeProfile(App.context as common.Context, this.profile);
+          this.skipSave = true;
+          let alwaysOn = ProfileManager.getAlwaysOnVPN();
+          if (alwaysOn !== undefined && alwaysOn.getUUID() === this.profile.getUUID()) {
+            ProfileManager.setAlwaysOnVPN(undefined);
+          }
+          let context = App.context as common.UIAbilityContext;
+          ProfileShortcut.remove(context, this.profile).catch(() => {
+          });
+          ProfileManager.removeProfile(context, this.profile);
           router.back();
         }
       }
@@ -161,8 +174,6 @@ struct VPNPreferences {
                 .strokeWidth(4)
             }
             .onClick(() => {
-              // switching tabs saves the previous one (like onPause in Android)
-              this.save();
               this.currentIndex = i;
             })
           }, (i: number) => `${i}`)
@@ -211,7 +222,6 @@ struct VPNPreferences {
       .scrollable(false)
       .barHeight(0)
       .onChange((index: number) => {
-        this.save();
         this.currentIndex = index;
       })
       .layoutWeight(1)

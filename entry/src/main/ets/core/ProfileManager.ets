@@ -57,7 +57,8 @@ export class ProfileManager {
           continue;
         }
         let uuid = name.substring(0, name.length - '.json'.length);
-        if (uuid === ProfileManager.TEMPORARY_PROFILE_FILENAME) {
+        if (uuid === ProfileManager.TEMPORARY_PROFILE_FILENAME || uuid === 'vpn_status_snapshot' ||
+          uuid === 'pending-start') {
           continue;
         }
         ProfileManager.loadVpnEntry(uuid);

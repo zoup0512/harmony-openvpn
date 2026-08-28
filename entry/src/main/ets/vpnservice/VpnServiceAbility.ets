@@ -51,6 +51,7 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
     App.init(this.context);
     VpnStatus.setPersistenceContext(this.context, true);
     VpnStatus.logMessage(LogLevel.INFO, 'VpnServiceAbility onCreate received.');
+    VpnStatus.logMessage(LogLevel.DEBUG, `onCreate want: ${this.describeWant(want)}`);
     this.installStatusListener();
     this.startFromWant(want, 'onCreate');
   }
@@ -62,8 +63,51 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
     App.init(this.context);
     VpnStatus.setPersistenceContext(this.context, true);
     VpnStatus.logMessage(LogLevel.INFO, `VpnServiceAbility onRequest received, startId=${startId}.`);
+    VpnStatus.logMessage(LogLevel.DEBUG, `onRequest want (startId=${startId}): ${this.describeWant(want)}`);
     this.installStatusListener();
     this.startFromWant(want, 'onRequest');
+  }
+
+  /**
+   * Redacted want summary for the log window: structural fields plus every
+   * parameter key with its type. Only the profile uuid / reason values are
+   * printed; credentials stay type-only.
+   */
+  private describeWant(want: Want): string {
+    let parts: string[] = [];
+    try {
+      if (want.action !== undefined) {
+        parts.push(`action=${want.action}`);
+      }
+      if (want.bundleName !== undefined) {
+        parts.push(`bundle=${want.bundleName}`);
+      }
+      if (want.abilityName !== undefined) {
+        parts.push(`ability=${want.abilityName}`);
+      }
+      if (want.type !== undefined) {
+        parts.push(`type=${want.type}`);
+      }
+      let params = want.parameters as Record<string, Object> | undefined;
+      if (params === undefined || params === null) {
+        parts.push('params=none');
+      } else {
+        let described: string[] = [];
+        let keys = Object.keys(params);
+        for (let key of keys) {
+          let v: Object | undefined = params[key];
+          if (key === 'de.blinkt.openvpn.profileUUID' || key === 'startReason' || key === 'authKind') {
+            described.push(`${key}=${v === undefined || v === null ? 'null' : `${v}`}`);
+          } else {
+            described.push(`${key}:${v === undefined || v === null ? 'null' : typeof v}`);
+          }
+        }
+        parts.push(`params{${described.join(', ')}}`);
+      }
+    } catch (e) {
+      parts.push('describe-failed');
+    }
+    return parts.join(' ');
   }
 
   private startFromWant(want: Want, source: string): void {
@@ -73,8 +117,12 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
       let v = params['de.blinkt.openvpn.profileUUID'];
       if (typeof v === 'string') {
         uuid = v;
+      } else if (v !== undefined && v !== null) {
+        VpnStatus.logMessage(LogLevel.WARNING,
+          `startFromWant: profileUUID parameter has unexpected type ${typeof v}, ignoring it.`);
       }
     }
+    let uuidFromWant = uuid !== undefined;
     let reason = source;
     let response = '';
     let dynamicChallengeCookie = '';
@@ -125,10 +173,22 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
       VpnStatus.logMessage(LogLevel.INFO, `Merged pending VPN start request for ${uuid}.`);
     }
     if (uuid !== undefined && uuid !== null && uuid !== '') {
+      VpnStatus.logMessage(LogLevel.DEBUG,
+        `VPN start uuid source: ${uuidFromWant ? 'want-parameter' : 'pending-file'} (${uuid}), reason=${reason}.`);
       VpnController.clearPendingStartRequest();
     }
     if (uuid === undefined || uuid === null || uuid === '') {
-      VpnStatus.logMessage(LogLevel.ERROR, `VPN start request from ${source} has no profile uuid.`);
+      if (this.running) {
+        // The system re-delivers the start want for one authorization flow;
+        // with the tunnel already up and the pending file consumed this
+        // duplicate carries no uuid and is harmless.
+        VpnStatus.logMessage(LogLevel.INFO,
+          `VPN start from ${source} carries no profile uuid; tunnel already running, ignoring.`);
+        return;
+      }
+      VpnStatus.logMessage(LogLevel.ERROR,
+        `VPN start request from ${source} has no profile uuid ` +
+        `(want carried none, pending start file: ${VpnController.pendingStartDebugInfo()}).`);
       return;
     }
     if (this.running && reason === 'otp-cr-text' && this.engine !== undefined) {

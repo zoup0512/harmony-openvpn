@@ -17,6 +17,7 @@
  */
 
 #include <napi/native_api.h>
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -65,8 +66,8 @@ std::mutex g_client_mtx; // protects the client pointer during start/stop/event 
 // TUN establish handshake (worker thread <-> ArkTS)
 std::mutex g_tun_mtx;
 std::condition_variable g_tun_cv;
-int g_tun_fd_result = -1;       // -2 = aborted by stop
-bool g_tun_waiting = false;
+int g_tun_fd_result = -1;   // fd delivered by resolveTunEstablish(), or negative error
+bool g_tun_pending = false; // tun_establish_req emitted, answer not yet delivered
 
 ClientAPI::OpenVPNClient *g_client = nullptr;
 
@@ -211,6 +212,17 @@ class NapiClient : public ClientAPI::OpenVPNClient {
     // vpnExtension VpnConfig; every setter just records and succeeds.
     bool tun_builder_new() override
     {
+        // The builder sequence re-runs on every (re)connection (tunPersist is
+        // false), so start from a clean parameter set — otherwise routes and
+        // addresses accumulate across reconnects.
+        addrs.clear();
+        routes.clear();
+        excludeRoutes.clear();
+        dnsServers.clear();
+        searchDomains.clear();
+        mtu = 0;
+        rerouteGw = false;
+        sessionName.clear();
         return true;
     }
 
@@ -237,9 +249,34 @@ class NapiClient : public ClientAPI::OpenVPNClient {
         return true;
     }
 
-    bool tun_builder_reroute_gw(bool ipv4, bool ipv6, unsigned int) override
+    // tunprop.hpp does NOT emit add_route calls for the default route: the
+    // whole redirect-gateway job (usually pushed by the server at runtime)
+    // is delegated to this hook. Install the default routes here or traffic
+    // never enters the TUN while the session still reports CONNECTED.
+    bool tun_builder_reroute_gw(bool ipv4, bool ipv6, unsigned int flags) override
     {
         rerouteGw = ipv4 || ipv6;
+        // RedirectGatewayFlags::RG_DEF1 from openvpn/client/rgopt.hpp
+        constexpr unsigned int RG_DEF1 = 1u << 4;
+        const bool def1 = (flags & RG_DEF1) != 0;
+        if (ipv4) {
+            if (def1) {
+                addRouteUnique("0.0.0.0/1");
+                addRouteUnique("128.0.0.0/1");
+            } else {
+                addRouteUnique("0.0.0.0/0");
+            }
+        }
+        if (ipv6) {
+            if (def1) {
+                addRouteUnique("::/1");
+                addRouteUnique("8000::/1");
+            } else {
+                addRouteUnique("::/0");
+            }
+        }
+        emit("log", "", std::string("reroute_gw: ipv4=") + (ipv4 ? "1" : "0") +
+             " ipv6=" + (ipv6 ? "1" : "0") + " def1=" + (def1 ? "1" : "0"));
         return true;
     }
 
@@ -361,6 +398,16 @@ class NapiClient : public ClientAPI::OpenVPNClient {
         return out;
     }
 
+    // The config may already contain an explicit default route (e.g. a
+    // client-side "route 0.0.0.0 0.0.0.0 vpn_gateway" in addition to the
+    // pushed redirect-gateway); keep the route list free of duplicates.
+    void addRouteUnique(const std::string &route)
+    {
+        if (std::find(routes.begin(), routes.end(), route) == routes.end()) {
+            routes.push_back(route);
+        }
+    }
+
     int tun_builder_establish() override
     {
         // Serialize the collected parameters for the ArkTS side; it creates the
@@ -378,16 +425,15 @@ class NapiClient : public ClientAPI::OpenVPNClient {
         {
             std::lock_guard<std::mutex> lock(g_tun_mtx);
             g_tun_fd_result = -1;
-            g_tun_waiting = true;
+            g_tun_pending = true;
         }
         emit("tun_establish_req", sessionName, req);
 
         std::unique_lock<std::mutex> lock(g_tun_mtx);
         bool ok = g_tun_cv.wait_for(lock, std::chrono::seconds(20),
-                                    [] { return g_tun_fd_result != -1; });
+                                    [] { return !g_tun_pending; });
         int fd = g_tun_fd_result;
-        g_tun_waiting = false;
-        if (!ok || fd <= 0) {
+        if (!ok || fd < 0) {
             emit("log", "", "TUN establish failed or timed out (fd=" + std::to_string(fd) + ")");
             return -1;
         }
@@ -605,8 +651,9 @@ napi_value StopTunnel(napi_env, napi_callback_info)
     {
         // unblock a pending tun establish wait
         std::lock_guard<std::mutex> lock(g_tun_mtx);
-        if (g_tun_fd_result == -1) {
+        if (g_tun_pending) {
             g_tun_fd_result = -2;
+            g_tun_pending = false;
         }
     }
     g_tun_cv.notify_all();
@@ -668,6 +715,7 @@ napi_value ResolveTunEstablish(napi_env env, napi_callback_info info)
     {
         std::lock_guard<std::mutex> lock(g_tun_mtx);
         g_tun_fd_result = fd;
+        g_tun_pending = false;
     }
     g_tun_cv.notify_all();
     return nullptr;

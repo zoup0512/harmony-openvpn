@@ -360,6 +360,11 @@ export class OvpnEngine {
     if (addresses.length === 0) {
       throw new Error('OpenVPN3 did not provide a TUN address');
     }
+    VpnStatus.logMessage(LogLevel.DEBUG,
+      `TUN request: addresses=${request.addresses ?? ''}, routes=${request.routes ?? ''}, ` +
+      `excludeRoutes=${request.excludeRoutes ?? ''}, dns=${request.dnsServers ?? ''}, ` +
+      `searchDomains=${request.searchDomains ?? ''}, mtu=${request.mtu ?? 0}, ` +
+      `rerouteGw=${request.rerouteGw === true}`);
 
     let linkAddresses: Array<vpnExtension.LinkAddress> = [];
     for (let item of addresses) {
@@ -368,28 +373,40 @@ export class OvpnEngine {
         prefixLength: item.prefix
       });
     }
+    // An IPv6 route on an IPv4-only TUN would make create() fail; the core
+    // normally does not request v6 routes without a v6 address, this filter
+    // just makes that guarantee explicit.
+    let ipv6Accepted = addresses.some((item) => item.address.indexOf(':') >= 0);
     let routeInfos: Array<vpnExtension.RouteInfo> = [];
     for (let item of routes) {
+      let isV6 = item.address.indexOf(':') >= 0;
+      if (isV6 && !ipv6Accepted) {
+        continue;
+      }
       routeInfos.push({
         interface: '',
         destination: {
-          address: { address: item.address, family: item.address.indexOf(':') >= 0 ? 2 : 1 },
+          address: { address: item.address, family: isV6 ? 2 : 1 },
           prefixLength: item.prefix
         },
-        gateway: { address: '0.0.0.0', family: 1 },
+        gateway: { address: isV6 ? '::' : '0.0.0.0', family: isV6 ? 2 : 1 },
         hasGateway: false,
         isDefaultRoute: item.prefix === 0,
         isExcludedRoute: false
       });
     }
     for (let item of excludedRoutes) {
+      let isV6 = item.address.indexOf(':') >= 0;
+      if (isV6 && !ipv6Accepted) {
+        continue;
+      }
       routeInfos.push({
         interface: '',
         destination: {
-          address: { address: item.address, family: item.address.indexOf(':') >= 0 ? 2 : 1 },
+          address: { address: item.address, family: isV6 ? 2 : 1 },
           prefixLength: item.prefix
         },
-        gateway: { address: '0.0.0.0', family: 1 },
+        gateway: { address: isV6 ? '::' : '0.0.0.0', family: isV6 ? 2 : 1 },
         hasGateway: false,
         isDefaultRoute: item.prefix === 0,
         isExcludedRoute: true
@@ -407,11 +424,18 @@ export class OvpnEngine {
       searchDomains: searchDomains,
       mtu: request.mtu !== undefined && request.mtu > 0 ? request.mtu : 1400,
       isIPv4Accepted: true,
-      isIPv6Accepted: addresses.some((item) => item.address.indexOf(':') >= 0),
+      isIPv6Accepted: ipv6Accepted,
       isBlocking: true
     };
     if (this.connection === undefined) {
       throw new Error('VPN connection object is not initialized');
+    }
+    // A reconnect re-runs the whole builder sequence; destroy the TUN left
+    // over from the previous session before creating the new one.
+    try {
+      await this.connection.destroy();
+    } catch (e) {
+      // no TUN exists on the first connect
     }
     let fd = await this.connection.create(config);
     if (this.stopped) {
@@ -422,6 +446,7 @@ export class OvpnEngine {
       ovpnexec.resolveTunEstablish(-1);
       return;
     }
+    VpnStatus.logMessage(LogLevel.INFO, `TUN established (fd=${fd}, ${routeInfos.length} routes).`);
     ovpnexec.resolveTunEstablish(fd);
   }
 

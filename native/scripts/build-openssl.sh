@@ -5,7 +5,19 @@ TC="$(cygpath -m "$(cygpath -d 'C:\Program Files\Huawei\DevEco Studio\sdk\defaul
 ROOT="$(cd "$(dirname "$0")/.." && pwd -W 2>/dev/null || pwd)"
 SRC="$ROOT/third_party/openssl"
 OUT="$ROOT/build/openssl-ohos"
-MAKE="E:/AndroidSdk/ndk/25.1.8937393/prebuilt/windows-x86_64/bin/make.exe"
+# Prefer make from PATH, else any locally installed Android NDK make.exe
+# (a Windows-native make is required: MSYS make chokes on the drive-letter
+# colon in the toolchain paths).
+MAKE="$(command -v make || true)"
+if [ -z "$MAKE" ]; then
+    MAKE="$(ls /c/MyProgram/Sdk/Sdk/ndk/*/prebuilt/windows-x86_64/bin/make.exe \
+        /c/Users/*/AppData/Local/Android/Sdk/ndk/*/prebuilt/windows-x86_64/bin/make.exe \
+        /e/AndroidSdk/ndk/*/prebuilt/windows-x86_64/bin/make.exe 2>/dev/null | sort -V | tail -1)"
+fi
+if [ -z "$MAKE" ]; then
+    echo "build-openssl.sh: no usable make.exe found (install one or add it to PATH)" >&2
+    exit 1
+fi
 
 rm -rf "$OUT"
 mkdir -p "$OUT"

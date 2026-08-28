@@ -1,0 +1,15 @@
+[submodule "native/third_party/openvpn3"]
+	path = native/third_party/openvpn3
+	url = https://github.com/OpenVPN/openvpn3.git
+[submodule "native/third_party/asio"]
+	path = native/third_party/asio
+	url = https://github.com/chriskohlhoff/asio.git
+[submodule "native/third_party/fmt"]
+	path = native/third_party/fmt
+	url = https://github.com/fmtlib/fmt.git
+[submodule "native/third_party/lz4"]
+	path = native/third_party/lz4
+	url = https://github.com/lz4/lz4.git
+[submodule "native/third_party/openssl"]
+	path = native/third_party/openssl
+	url = https://github.com/openssl/openssl.git

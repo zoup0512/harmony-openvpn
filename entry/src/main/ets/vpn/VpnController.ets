@@ -7,6 +7,8 @@ import Want from '@ohos.app.ability.Want';
 import fs from '@ohos.file.fs';
 import { App } from '../common/App';
 import { FileUtil } from '../common/FileUtil';
+import { VpnStatus } from '../core/VpnStatus';
+import { LogLevel } from '../core/LogItem';
 
 export class PendingStart {
   uuid: string = '';
@@ -139,14 +141,30 @@ export class VpnController {
     return vpnExtension.stopVpnExtensionAbility(want);
   }
 
+  /** Read for logs/diagnostics: where the pending start file is and whether it exists. */
+  static pendingStartDebugInfo(): string {
+    let path = VpnController.pendingStartPath();
+    if (path === undefined) {
+      return 'path unknown (App context not initialized)';
+    }
+    try {
+      return fs.accessSync(path) ? `present at ${path}` : `missing at ${path}`;
+    } catch (e) {
+      return `unreadable at ${path}`;
+    }
+  }
+
   /** Request persisted by startVpn(); read by VpnServiceAbility when the want carries no uuid. */
   static readPendingStart(): PendingStart | undefined {
     let path = VpnController.pendingStartPath();
     if (path === undefined) {
+      VpnStatus.logMessage(LogLevel.ERROR,
+        'readPendingStart: App context not initialized, cannot locate the pending start file.');
       return undefined;
     }
     try {
       if (!fs.accessSync(path)) {
+        VpnStatus.logMessage(LogLevel.DEBUG, `readPendingStart: no pending start file at ${path}.`);
         return undefined;
       }
       let rec = JSON.parse(fs.readTextSync(path)) as Record<string, Object>;
@@ -161,6 +179,8 @@ export class VpnController {
       let username = rec['username'];
       let password = rec['password'];
       if (typeof u !== 'string' || u === '') {
+        VpnStatus.logMessage(LogLevel.WARNING,
+          `readPendingStart: file at ${path} has no valid uuid entry.`);
         return undefined;
       }
       let info = new PendingStart();
@@ -183,9 +203,16 @@ export class VpnController {
       if (typeof password === 'string') {
         info.password = password;
       }
+      VpnStatus.logMessage(LogLevel.DEBUG,
+        `readPendingStart: using pending request for ${u} (reason=${info.reason}, ` +
+        `hasResponse=${info.response !== ''}, hasCookie=${info.dynamicChallengeCookie !== ''}, ` +
+        `hasUser=${info.username !== ''}, hasPass=${info.password !== ''}).`);
       VpnController.clearPendingStart();
       return info;
     } catch (e) {
+      let message = e instanceof Error ? e.message : `${e}`;
+      VpnStatus.logMessage(LogLevel.WARNING,
+        `readPendingStart: failed to read ${path}: ${message}`);
       return undefined;
     }
   }
@@ -210,6 +237,8 @@ export class VpnController {
     dynamicChallengeCookie: string, authKind: string, username: string, password: string): void {
     let path = VpnController.pendingStartPath();
     if (path === undefined) {
+      VpnStatus.logMessage(LogLevel.ERROR,
+        'writePendingStart: App context not initialized, cannot persist the start request.');
       return;
     }
     let info = new PendingStart();
@@ -222,8 +251,13 @@ export class VpnController {
     info.password = password;
     try {
       FileUtil.writeText(path, JSON.stringify(info));
+      VpnStatus.logMessage(LogLevel.DEBUG,
+        `Pending start request persisted for ${uuid} (reason=${reason}, hasResponse=${response !== ''}, ` +
+        `hasCookie=${dynamicChallengeCookie !== ''}, hasUser=${username !== ''}, hasPass=${password !== ''}).`);
     } catch (e) {
-      // best effort: the want parameter may still be delivered on some builds
+      let message = e instanceof Error ? e.message : `${e}`;
+      VpnStatus.logMessage(LogLevel.ERROR,
+        `writePendingStart: failed to write ${path}: ${message}`);
     }
   }
 

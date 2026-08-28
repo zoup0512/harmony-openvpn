@@ -710,8 +710,8 @@ export class VpnProfile {
     p.mKeyPassword = o['mKeyPassword'] as string;
 
     let conns = o['mConnections'] as Object[];
-    if (conns !== undefined && conns !== null && conns.length > 0) {
-      p.mConnections = [];
+    p.mConnections = [];
+    if (Array.isArray(conns)) {
       for (let c of conns) {
         p.mConnections.push(Connection.fromJson(c as Record<string, Object>));
       }

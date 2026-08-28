@@ -87,8 +87,16 @@ export class ProfileManager {
         return;
       }
       let text = fs.readTextSync(path);
-      let vp = VpnProfile.fromJson(JSON.parse(text) as Record<string, Object>);
-      if (vp.mName === undefined || vp.getUUID() === undefined || vp.getUUID() === '') {
+      let json = JSON.parse(text) as Record<string, Object>;
+      let uuidValue = json['mUuid'];
+      let nameValue = json['mName'];
+      let connectionsValue = json['mConnections'];
+      if (typeof uuidValue !== 'string' || uuidValue.trim() === '' || uuidValue.trim() !== uuid.trim() ||
+        typeof nameValue !== 'string' || nameValue.trim() === '' || !Array.isArray(connectionsValue)) {
+        return;
+      }
+      let vp = VpnProfile.fromJson(json);
+      if (vp.getUUID().trim() === '') {
         return;
       }
       ProfileManager.profiles.set(vp.getUUID(), vp);

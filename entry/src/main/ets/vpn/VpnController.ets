@@ -14,6 +14,8 @@ export class PendingStart {
   response: string = '';
   dynamicChallengeCookie: string = '';
   authKind: string = '';
+  username: string = '';
+  password: string = '';
 }
 
 export class PendingAuthChallenge {
@@ -23,6 +25,7 @@ export class PendingAuthChallenge {
   echo: boolean = false;
   responseRequired: boolean = true;
   cookie: string = '';
+  username: string = '';
   expiresAt: number = 0;
 }
 
@@ -33,11 +36,12 @@ export class VpnController {
   private static readonly PENDING_AUTH_FILENAME: string = 'pending-auth.challenge';
 
   static startVpn(uuid: string, reason: string, response: string = '',
-    dynamicChallengeCookie: string = '', authKind: string = ''): Promise<void> {
+    dynamicChallengeCookie: string = '', authKind: string = '', username: string = '',
+    password: string = ''): Promise<void> {
     // The system VPN authorization dialog starts the extension with a
     // system-generated want, so custom parameters may not reach onCreate.
     // Persist the request synchronously as the out-of-band channel.
-    VpnController.writePendingStart(uuid, reason, response, dynamicChallengeCookie, authKind);
+    VpnController.writePendingStart(uuid, reason, response, dynamicChallengeCookie, authKind, username, password);
     let want: Want = {
       bundleName: VpnController.BUNDLE_NAME,
       abilityName: VpnController.ABILITY_NAME,
@@ -46,7 +50,9 @@ export class VpnController {
         'startReason': reason,
         'authResponse': response,
         'dynamicChallengeCookie': dynamicChallengeCookie,
-        'authKind': authKind
+        'authKind': authKind,
+        'username': username,
+        'password': password
       } as Record<string, Object>
     };
     return vpnExtension.startVpnExtensionAbility(want);
@@ -85,6 +91,7 @@ export class VpnController {
       let echo = rec['echo'];
       let responseRequired = rec['responseRequired'];
       let cookie = rec['cookie'];
+      let username = rec['username'];
       if (typeof uuid === 'string') {
         info.uuid = uuid;
       }
@@ -102,6 +109,9 @@ export class VpnController {
       }
       if (typeof cookie === 'string') {
         info.cookie = cookie;
+      }
+      if (typeof username === 'string') {
+        info.username = username;
       }
       info.expiresAt = expiresAt;
       return info;
@@ -142,9 +152,14 @@ export class VpnController {
       let rec = JSON.parse(fs.readTextSync(path)) as Record<string, Object>;
       let u = rec['uuid'];
       let r = rec['reason'];
-      let response = rec['authResponse'];
+      let response = rec['response'];
+      if (typeof response !== 'string') {
+        response = rec['authResponse'];
+      }
       let cookie = rec['dynamicChallengeCookie'];
       let authKind = rec['authKind'];
+      let username = rec['username'];
+      let password = rec['password'];
       if (typeof u !== 'string' || u === '') {
         return undefined;
       }
@@ -161,6 +176,12 @@ export class VpnController {
       }
       if (typeof authKind === 'string') {
         info.authKind = authKind;
+      }
+      if (typeof username === 'string') {
+        info.username = username;
+      }
+      if (typeof password === 'string') {
+        info.password = password;
       }
       VpnController.clearPendingStart();
       return info;
@@ -186,7 +207,7 @@ export class VpnController {
   }
 
   private static writePendingStart(uuid: string, reason: string, response: string,
-    dynamicChallengeCookie: string, authKind: string): void {
+    dynamicChallengeCookie: string, authKind: string, username: string, password: string): void {
     let path = VpnController.pendingStartPath();
     if (path === undefined) {
       return;
@@ -197,6 +218,8 @@ export class VpnController {
     info.response = response;
     info.dynamicChallengeCookie = dynamicChallengeCookie;
     info.authKind = authKind;
+    info.username = username;
+    info.password = password;
     try {
       FileUtil.writeText(path, JSON.stringify(info));
     } catch (e) {

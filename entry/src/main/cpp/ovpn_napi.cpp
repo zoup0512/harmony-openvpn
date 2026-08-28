@@ -429,6 +429,24 @@ bool read_bool_prop(napi_env env, napi_value obj, const char *name, bool &out)
     return napi_get_value_bool(env, v, &out) == napi_ok;
 }
 
+bool read_int_prop(napi_env env, napi_value obj, const char *name, int &out)
+{
+    napi_value v;
+    if (napi_get_named_property(env, obj, name, &v) != napi_ok) {
+        return false;
+    }
+    napi_valuetype t;
+    if (napi_typeof(env, v, &t) != napi_ok || t != napi_number) {
+        return false;
+    }
+    int32_t value = 0;
+    if (napi_get_value_int32(env, v, &value) != napi_ok) {
+        return false;
+    }
+    out = value;
+    return true;
+}
+
 napi_value Attach(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
@@ -462,12 +480,14 @@ napi_value StartTunnel(napi_env env, napi_callback_info info)
     std::string dynamicChallengeCookie;
     std::string ssoMethods = "webauth,crtext";
     bool infoEnabled = true;
+    int connTimeout = 120;
     if (argc >= 1 && argv[0] != nullptr) {
         read_str_prop(env, argv[0], "content", content);
         read_str_prop(env, argv[0], "username", username);
         read_str_prop(env, argv[0], "password", password);
         read_str_prop(env, argv[0], "response", response);
         read_str_prop(env, argv[0], "dynamicChallengeCookie", dynamicChallengeCookie);
+        read_int_prop(env, argv[0], "connTimeout", connTimeout);
         std::string configuredSsoMethods;
         if (read_str_prop(env, argv[0], "ssoMethods", configuredSsoMethods) &&
             !configuredSsoMethods.empty()) {
@@ -500,7 +520,7 @@ napi_value StartTunnel(napi_env env, napi_callback_info info)
     config.guiVersion = "harmony-openvpn 1.0";
     config.ssoMethods = ssoMethods;
     config.info = infoEnabled;
-    config.connTimeout = 0;
+    config.connTimeout = connTimeout < 0 ? 0 : connTimeout;
     config.tunPersist = false;
     config.compressionMode = "yes";
 
@@ -533,6 +553,21 @@ napi_value StartTunnel(napi_env env, napi_callback_info info)
         ClientAPI::Status st = client->provide_creds(creds);
         if (st.error) {
             emit("log", "", "provide_creds error: " + st.message);
+            {
+                std::lock_guard<std::mutex> lock(g_client_mtx);
+                delete client;
+                if (g_client == client) {
+                    g_client = nullptr;
+                }
+                g_client_ready = false;
+            }
+            g_running = false;
+            napi_get_boolean(env, false, &okv);
+            std::string message = st.message.empty() ? "Unable to provide VPN credentials" : st.message;
+            napi_create_string_utf8(env, message.c_str(), NAPI_AUTO_LENGTH, &errv);
+            napi_set_named_property(env, result, "ok", okv);
+            napi_set_named_property(env, result, "error", errv);
+            return result;
         }
     }
 

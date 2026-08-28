@@ -6,6 +6,7 @@ export class Theme {
   static readonly PRIMARY: string = '#3F51B5';
   static readonly PRIMARY_DARK: string = '#303F9F';
   static readonly ACCENT: string = '#FFA726';
+  static readonly SUCCESS: string = '#2E7D32';
   static readonly WINDOW_BG: string = '#F2F2F2';
   static readonly CARD_BG: string = '#FFFFFF';
   static readonly TEXT_PRIMARY: string = '#DE000000';

@@ -18,7 +18,7 @@ import { App } from '../common/App';
 import { ProfileManager } from '../core/ProfileManager';
 import { VpnProfile, ProfileError } from '../core/VpnProfile';
 import { VpnStatus } from '../core/VpnStatus';
-import { LogLevel, ConnectionStatus } from '../core/LogItem';
+import { LogItem, LogLevel, ConnectionStatus } from '../core/LogItem';
 import { generateConfigFile, GenEnvInfo } from '../core/ConfigGenerator';
 import { Connection } from '../core/Connection';
 import { VpnController, PendingAuthChallenge } from '../vpn/VpnController';
@@ -30,15 +30,28 @@ import deviceInfo from '@ohos.deviceInfo';
 
 const NOTIFICATION_ID = 1;
 
+class SessionCredentials {
+  username: string = '';
+  password: string = '';
+}
+
 export default class VpnServiceAbility extends VpnExtensionAbility {
   private running: boolean = false;
   private engine?: OvpnEngine;
+  private authWaitTimer: number = -1;
+  private sessionCredentialProfileUuid: string = '';
+  private sessionUsername: string = '';
+  private sessionPassword: string = '';
+  private sessionCredentialsExpiresAt: number = 0;
+  private statusListener?: (level: ConnectionStatus, cleanMessage: string, logItem: LogItem) => void;
+  private statusListenerInstalled: boolean = false;
 
   onCreate(want: Want): void {
     super.onCreate(want);
     App.init(this.context);
     VpnStatus.setPersistenceContext(this.context, true);
     VpnStatus.logMessage(LogLevel.INFO, 'VpnServiceAbility onCreate received.');
+    this.installStatusListener();
     this.startFromWant(want, 'onCreate');
   }
 
@@ -49,6 +62,7 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
     App.init(this.context);
     VpnStatus.setPersistenceContext(this.context, true);
     VpnStatus.logMessage(LogLevel.INFO, `VpnServiceAbility onRequest received, startId=${startId}.`);
+    this.installStatusListener();
     this.startFromWant(want, 'onRequest');
   }
 
@@ -64,6 +78,8 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
     let reason = source;
     let response = '';
     let dynamicChallengeCookie = '';
+    let username = '';
+    let password = '';
     if (params !== undefined && params !== null) {
       let r = params['startReason'];
       if (typeof r === 'string') {
@@ -77,22 +93,36 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
       if (typeof dc === 'string') {
         dynamicChallengeCookie = dc;
       }
-    }
-    if (uuid === undefined || uuid === null || uuid === '') {
-      // The system VPN authorization dialog may start this ability with a
-      // system-generated want, dropping custom parameters. Fall back to the
-      // request persisted by VpnController.startVpn().
-      let pending = VpnController.readPendingStart();
-      if (pending !== undefined) {
-        uuid = pending.uuid;
-        if (pending.reason !== '') {
-          reason = pending.reason;
-        }
-        response = pending.response;
-        dynamicChallengeCookie = pending.dynamicChallengeCookie;
-        VpnStatus.logMessage(LogLevel.INFO,
-          `No profile uuid in want, using pending start request for ${uuid}.`);
+      let u = params['username'];
+      if (typeof u === 'string') {
+        username = u;
       }
+      let p = params['password'];
+      if (typeof p === 'string') {
+        password = p;
+      }
+    }
+    let pending = VpnController.readPendingStart();
+    if (pending !== undefined) {
+      if (uuid === undefined || uuid === null || uuid === '') {
+        uuid = pending.uuid;
+      }
+      if (reason === source && pending.reason !== '') {
+        reason = pending.reason;
+      }
+      if (response === '') {
+        response = pending.response;
+      }
+      if (dynamicChallengeCookie === '') {
+        dynamicChallengeCookie = pending.dynamicChallengeCookie;
+      }
+      if (username === '') {
+        username = pending.username;
+      }
+      if (password === '') {
+        password = pending.password;
+      }
+      VpnStatus.logMessage(LogLevel.INFO, `Merged pending VPN start request for ${uuid}.`);
     }
     if (uuid !== undefined && uuid !== null && uuid !== '') {
       VpnController.clearPendingStartRequest();
@@ -110,19 +140,23 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
         return;
       }
     }
-    if (this.running && reason === 'otp') {
+    if (this.running && (reason === 'otp' || reason === 'credentials')) {
       let oldEngine = this.engine;
       this.running = false;
       if (oldEngine !== undefined) {
         oldEngine.stop().then(() => {
-          this.engine = undefined;
-          this.connect(uuid as string, reason, response, dynamicChallengeCookie);
+          if (this.engine === oldEngine) {
+            this.engine = undefined;
+          }
+          this.connect(uuid as string, reason, response, dynamicChallengeCookie, username, password);
         }).catch(() => {
-          this.engine = undefined;
-          this.connect(uuid as string, reason, response, dynamicChallengeCookie);
+          if (this.engine === oldEngine) {
+            this.engine = undefined;
+          }
+          this.connect(uuid as string, reason, response, dynamicChallengeCookie, username, password);
         });
       } else {
-        this.connect(uuid, reason, response, dynamicChallengeCookie);
+        this.connect(uuid, reason, response, dynamicChallengeCookie, username, password);
       }
       return;
     }
@@ -130,19 +164,108 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
       VpnStatus.logMessage(LogLevel.DEBUG, `Ignoring duplicate VPN start from ${source}.`);
       return;
     }
-    this.connect(uuid, reason, response, dynamicChallengeCookie);
+    this.connect(uuid, reason, response, dynamicChallengeCookie, username, password);
+  }
+
+  private rememberSessionCredentials(uuid: string, username: string, password: string): void {
+    if (username === '' && password === '') {
+      return;
+    }
+    if (this.sessionCredentialProfileUuid !== '' && this.sessionCredentialProfileUuid !== uuid) {
+      this.clearSessionCredentials();
+    }
+    this.sessionCredentialProfileUuid = uuid;
+    if (username !== '') {
+      this.sessionUsername = username;
+    }
+    if (password !== '') {
+      this.sessionPassword = password;
+    }
+    this.sessionCredentialsExpiresAt = Date.now() + 120000;
+  }
+
+  private sessionCredentialsFor(uuid: string): SessionCredentials | undefined {
+    if (this.sessionCredentialProfileUuid !== uuid || this.sessionCredentialsExpiresAt <= Date.now()) {
+      if (this.sessionCredentialProfileUuid === uuid) {
+        this.clearSessionCredentials();
+      }
+      return undefined;
+    }
+    let credentials = new SessionCredentials();
+    credentials.username = this.sessionUsername;
+    credentials.password = this.sessionPassword;
+    return credentials;
+  }
+
+  private clearSessionCredentials(): void {
+    this.sessionCredentialProfileUuid = '';
+    this.sessionUsername = '';
+    this.sessionPassword = '';
+    this.sessionCredentialsExpiresAt = 0;
+  }
+
+  private scheduleAuthWaitTimeout(expiresAt: number): void {
+    this.clearAuthWaitTimeout();
+    let delay = Math.max(1, expiresAt - Date.now());
+    this.authWaitTimer = setTimeout(() => {
+      this.authWaitTimer = -1;
+      VpnController.clearPendingAuthChallenge();
+      this.clearSessionCredentials();
+      VpnStatus.updateStateString('NOPROCESS', this.stateMsg('NOPROCESS'),
+        ConnectionStatus.LEVEL_NOTCONNECTED);
+      this.terminate();
+    }, delay) as number;
+  }
+
+  private clearAuthWaitTimeout(): void {
+    if (this.authWaitTimer !== -1) {
+      clearTimeout(this.authWaitTimer);
+      this.authWaitTimer = -1;
+    }
+  }
+
+  private installStatusListener(): void {
+    if (this.statusListenerInstalled) {
+      return;
+    }
+    this.statusListenerInstalled = true;
+    this.statusListener = (level: ConnectionStatus, cleanMessage: string, _logItem: LogItem): void => {
+      if (level === ConnectionStatus.LEVEL_CONNECTED) {
+        this.clearSessionCredentials();
+        this.publishNotification('OpenVPN', this.stateMsg('CONNECTED'));
+      } else if (level === ConnectionStatus.LEVEL_WAITING_FOR_USER_INPUT) {
+        this.publishNotification('OpenVPN', this.stateMsg('USER_INPUT'));
+      } else if (level === ConnectionStatus.LEVEL_AUTH_FAILED) {
+        this.clearSessionCredentials();
+        this.publishNotification('OpenVPN', this.stateMsg('AUTH_FAILED'));
+      } else if (level === ConnectionStatus.LEVEL_NOTCONNECTED) {
+        this.cancelNotification();
+      } else if (cleanMessage !== '') {
+        this.publishNotification('OpenVPN', cleanMessage);
+      }
+    };
+    VpnStatus.addStateListener(this.statusListener);
   }
 
   onDestroy(): void {
     super.onDestroy();
+    this.clearAuthWaitTimeout();
     this.running = false;
+    this.clearSessionCredentials();
     if (this.engine !== undefined) {
       this.engine.stop().catch(() => {
       });
       this.engine = undefined;
     }
-    VpnStatus.updateStateString('NOPROCESS', this.stateMsg('NOPROCESS'),
-      ConnectionStatus.LEVEL_NOTCONNECTED);
+    if (this.statusListener !== undefined) {
+      VpnStatus.removeStateListener(this.statusListener);
+      this.statusListener = undefined;
+      this.statusListenerInstalled = false;
+    }
+    if (VpnStatus.lastState !== 'AUTH_FAILED' && VpnStatus.lastState !== 'SESSION_EXPIRED') {
+      VpnStatus.updateStateString('NOPROCESS', this.stateMsg('NOPROCESS'),
+        ConnectionStatus.LEVEL_NOTCONNECTED);
+    }
     VpnStatus.persistNow();
     this.cancelNotification();
   }
@@ -165,6 +288,14 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
         return s('state_resolving', 'Resolving host names…');
       case 'TCP_CONNECT':
         return s('state_connecting_tcp', 'Connecting (TCP)…');
+      case 'CONNECTED':
+        return s('state_connected', 'Connected');
+      case 'USER_INPUT':
+        return s('state_waiting_for_user_input', 'Waiting for authentication input…');
+      case 'AUTH_PENDING':
+        return s('state_waiting_for_authentication', 'Waiting for authentication…');
+      case 'AUTH_FAILED':
+        return s('state_auth_failed', 'Authentication failed');
       case 'EXITING':
       case 'NOPROCESS':
         return s('state_disconnected', 'Disconnected');
@@ -174,14 +305,29 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
   }
 
   private async connect(uuid: string, reason: string, response: string = '',
-    dynamicChallengeCookie: string = ''): Promise<void> {
+    dynamicChallengeCookie: string = '', username: string = '', password: string = ''): Promise<void> {
+    this.clearAuthWaitTimeout();
     this.running = true;
     VpnStatus.setConnectedVPNProfile(uuid);
     VpnStatus.logMessage(LogLevel.INFO, `Starting VPN, reason: ${reason}`);
 
+    if (username !== '' || password !== '') {
+      this.rememberSessionCredentials(uuid, username, password);
+    }
+    let sessionCredentials = this.sessionCredentialsFor(uuid);
+    if (sessionCredentials !== undefined) {
+      if (username === '') {
+        username = sessionCredentials.username;
+      }
+      if (password === '') {
+        password = sessionCredentials.password;
+      }
+    }
+
     let profile = ProfileManager.get(uuid);
     if (profile === undefined || profile === null) {
       VpnStatus.logMessage(LogLevel.ERROR, 'Profile not found, stopping VPN service.');
+      this.clearSessionCredentials();
       this.terminate();
       return;
     }
@@ -193,9 +339,13 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
     if (checkResult !== ProfileError.NO_ERROR) {
       VpnStatus.logMessage(LogLevel.ERROR, `Profile check failed: ${checkResult}`);
       VpnStatus.updateStateString('NOPROCESS', 'Profile check failed', undefined);
+      this.clearSessionCredentials();
       this.terminate();
       return;
     }
+
+    let effectiveUsername = username !== '' ? username : (profile.mUsername === undefined ? '' : profile.mUsername);
+    let effectivePassword = password !== '' ? password : (profile.mPassword === undefined ? '' : profile.mPassword);
 
     // 2. missing credentials?
     if (profile.mStaticChallenge !== '' && response === '' && dynamicChallengeCookie === '') {
@@ -209,16 +359,34 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
       VpnController.writePendingAuthChallenge(pending);
       VpnStatus.updateStateString('USER_INPUT', 'Waiting for one-time password',
         ConnectionStatus.LEVEL_WAITING_FOR_USER_INPUT);
-      this.terminate();
+      this.publishNotification('OpenVPN', this.stateMsg('USER_INPUT'));
+      this.scheduleAuthWaitTimeout(pending.expiresAt);
       return;
     }
 
     let missingPw = profile.needUserPWInputStr();
-    if (missingPw !== '') {
-      VpnStatus.updateStateString('USER_INPUT', 'Waiting for user input (missing credentials in profile settings)',
+    if (missingPw === 'password' && profile.isUserPWAuth() &&
+      (effectiveUsername === '' || effectivePassword === '')) {
+      let pending = new PendingAuthChallenge();
+      pending.uuid = uuid;
+      pending.kind = 'credentials';
+      pending.challenge = '';
+      pending.echo = false;
+      pending.responseRequired = true;
+      pending.username = effectiveUsername;
+      pending.expiresAt = Date.now() + 120000;
+      VpnController.writePendingAuthChallenge(pending);
+      VpnStatus.updateStateString('USER_INPUT', 'Waiting for username and password',
         ConnectionStatus.LEVEL_WAITING_FOR_USER_INPUT);
+      this.publishNotification('OpenVPN', this.stateMsg('USER_INPUT'));
+      this.scheduleAuthWaitTimeout(pending.expiresAt);
+      return;
+    }
+    if (missingPw !== '' && !(missingPw === 'password' && profile.isUserPWAuth())) {
+      VpnStatus.updateStateString('NOPROCESS', 'Missing credentials in profile settings',
+        ConnectionStatus.LEVEL_NOTCONNECTED);
       VpnStatus.logMessage(LogLevel.WARNING,
-        'Missing credentials: open the profile settings and enter the required username/password.');
+        'Missing certificate or key credentials in profile settings.');
       this.terminate();
       return;
     }
@@ -226,6 +394,13 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
     // 3. generate config
     VpnStatus.updateStateString('VPN_GENERATE_CONFIG', this.stateMsg('VPN_GENERATE_CONFIG'));
     this.publishNotification('OpenVPN', this.stateMsg('VPN_GENERATE_CONFIG'));
+    let timeoutSeconds = 120;
+    for (let connection of profile.mConnections) {
+      if (connection.mEnabled) {
+        timeoutSeconds = connection.getTimeout();
+        break;
+      }
+    }
 
     let env = new GenEnvInfo();
     env.mgmtSocketDir = this.context.cacheDir;
@@ -247,15 +422,28 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
     // OvpnEngine.establishTun() and then performs the real TLS/data-channel
     // handshake on its worker thread.
     VpnStatus.updateStateString('CONNECTING', this.stateMsg('CONNECTING'));
-    this.engine = new OvpnEngine(this.context as vpnExtension.VpnExtensionContext);
+    let currentEngine = new OvpnEngine(this.context as vpnExtension.VpnExtensionContext, () => {
+      if (this.engine !== currentEngine) {
+        return;
+      }
+      let retrying = !this.running;
+      this.running = false;
+      if (!retrying) {
+        this.clearSessionCredentials();
+      }
+      this.engine = undefined;
+      this.cancelNotification();
+    });
+    this.engine = currentEngine;
     try {
       await this.engine.start({
         content: configText,
-        username: profile.mUsername === undefined ? '' : profile.mUsername,
-        password: profile.mPassword === undefined ? '' : profile.mPassword,
+        username: effectiveUsername,
+        password: effectivePassword,
         response: response,
         dynamicChallengeCookie: dynamicChallengeCookie,
         ssoMethods: 'webauth,crtext',
+        connTimeout: timeoutSeconds,
         info: true
       });
       if (this.running) {
@@ -375,6 +563,7 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
 
   private terminate(): void {
     this.running = false;
+    this.clearSessionCredentials();
     this.cancelNotification();
     VpnStatus.persistNow();
     let want: Want = {

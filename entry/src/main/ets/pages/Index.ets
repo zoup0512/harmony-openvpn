@@ -14,7 +14,10 @@ import { GraphTab } from '../components/tabs/GraphTab';
 import { SettingsTab } from '../components/tabs/SettingsTab';
 import { FaqTab } from '../components/tabs/FaqTab';
 import { InputDialog, InputDialogModel } from '../components/InputDialog';
+import { CredentialsDialog, CredentialsDialogModel } from '../components/CredentialsDialog';
 import { VpnController, PendingAuthChallenge } from '../vpn/VpnController';
+import { VpnStatus } from '../core/VpnStatus';
+import { ConnectionStatus } from '../core/LogItem';
 
 @Entry
 @Component
@@ -23,9 +26,17 @@ struct Index {
   @State sortTick: number = 0;
   private authTimerId: number = -1;
   private activeAuthExpiresAt: number = 0;
+  private authDialogOpen: boolean = false;
+  private credentialsDialogOpen: boolean = false;
   private authModel: InputDialogModel = new InputDialogModel();
+  private credentialsModel: CredentialsDialogModel = new CredentialsDialogModel();
   private authDialogController: CustomDialogController = new CustomDialogController({
     builder: InputDialog({ model: this.authModel }),
+    autoCancel: false,
+    customStyle: true
+  });
+  private credentialsDialogController: CustomDialogController = new CustomDialogController({
+    builder: CredentialsDialog({ model: this.credentialsModel }),
     autoCancel: false,
     customStyle: true
   });
@@ -55,9 +66,29 @@ struct Index {
   private checkPendingAuth(): void {
     let challenge = VpnController.readPendingAuthChallenge();
     if (challenge === undefined || challenge.expiresAt <= Date.now()) {
+      if (this.activeAuthExpiresAt !== 0) {
+        if (this.authDialogOpen) {
+          this.authDialogController.close();
+          this.authDialogOpen = false;
+        }
+        if (this.credentialsDialogOpen) {
+          this.credentialsDialogController.close();
+          this.credentialsDialogOpen = false;
+        }
+        this.activeAuthExpiresAt = 0;
+        VpnController.clearPendingAuthChallenge();
+        VpnStatus.updateStateString('NOPROCESS', R.s('otp_expired'), ConnectionStatus.LEVEL_NOTCONNECTED);
+        VpnController.stopVpn().catch(() => {
+        });
+      }
       return;
     }
     if (this.activeAuthExpiresAt === challenge.expiresAt) {
+      return;
+    }
+    if (challenge.kind === 'credentials') {
+      this.activeAuthExpiresAt = challenge.expiresAt;
+      this.showCredentialsDialog(challenge);
       return;
     }
     let pending = new PendingAuthChallenge();
@@ -77,36 +108,81 @@ struct Index {
     this.authModel.okText = R.s('submit');
     this.authModel.cancelText = R.s('cancel');
     this.authModel.neutralText = '';
+    this.authModel.validate = (value: string): boolean => {
+      if (pending.responseRequired && value.trim() === '') {
+        promptAction.showToast({ message: R.s('otp_required') });
+        return false;
+      }
+      return true;
+    };
     this.authModel.onOk = (value: string) => {
+      this.authDialogOpen = false;
       this.submitPendingAuth(pending, value);
     };
     this.authModel.onCancel = () => {
+      this.authDialogOpen = false;
       VpnController.clearPendingAuthChallenge();
       this.activeAuthExpiresAt = 0;
+      VpnStatus.updateStateString('NOPROCESS', R.s('state_disconnected'), ConnectionStatus.LEVEL_NOTCONNECTED);
       VpnController.stopVpn().catch(() => {
       });
     };
+    this.authDialogOpen = true;
     this.authDialogController.open();
+  }
+
+  private showCredentialsDialog(challenge: PendingAuthChallenge): void {
+    this.credentialsModel.title = R.s('credentials_title');
+    this.credentialsModel.message = R.s('credentials_message');
+    this.credentialsModel.username = challenge.username;
+    this.credentialsModel.password = '';
+    this.credentialsModel.usernamePlaceholder = R.s('credentials_username_placeholder');
+    this.credentialsModel.passwordPlaceholder = R.s('credentials_password_placeholder');
+    this.credentialsModel.okText = R.s('submit');
+    this.credentialsModel.cancelText = R.s('cancel');
+    this.credentialsModel.onOk = (username: string, password: string): boolean => {
+      let trimmedUsername = username.trim();
+      if (trimmedUsername === '' || password === '') {
+        promptAction.showToast({ message: R.s('credentials_required') });
+        return false;
+      }
+      this.credentialsDialogOpen = false;
+      VpnController.clearPendingAuthChallenge();
+      this.activeAuthExpiresAt = 0;
+      VpnController.startVpn(challenge.uuid, 'credentials', '', '', '', trimmedUsername, password).catch(() => {
+        VpnController.writePendingAuthChallenge(challenge);
+        this.activeAuthExpiresAt = 0;
+        promptAction.showToast({ message: R.s('auth_submit_failed') });
+      });
+      return true;
+    };
+    this.credentialsModel.onCancel = () => {
+      this.credentialsDialogOpen = false;
+      VpnController.clearPendingAuthChallenge();
+      this.activeAuthExpiresAt = 0;
+      VpnStatus.updateStateString('NOPROCESS', R.s('state_disconnected'), ConnectionStatus.LEVEL_NOTCONNECTED);
+      VpnController.stopVpn().catch(() => {
+      });
+    };
+    this.credentialsDialogOpen = true;
+    this.credentialsDialogController.open();
   }
 
   private submitPendingAuth(challenge: PendingAuthChallenge, value: string): void {
     let response = value.trim();
-    if (response === '') {
-      promptAction.showToast({ message: R.s('otp_required') });
-      return;
-    }
     VpnController.clearPendingAuthChallenge();
     this.activeAuthExpiresAt = 0;
-    if (challenge.kind === 'cr_text') {
-      promptAction.showToast({ message: R.s('otp_retrying') });
-      // CR_TEXT is handled by the live native client when the extension remains active.
-      // If the extension has already ended, the normal retry path is used instead.
-      VpnController.startVpn(challenge.uuid, 'otp-cr-text', response, '', 'cr_text').catch(() => {
-      });
-      return;
-    }
     promptAction.showToast({ message: R.s('otp_retrying') });
-    VpnController.startVpn(challenge.uuid, 'otp', response, challenge.cookie, challenge.kind).catch(() => {
+    let reason = challenge.kind === 'cr_text' ? 'otp-cr-text' : 'otp';
+    let cookie = challenge.kind === 'cr_text' ? '' : challenge.cookie;
+    VpnController.startVpn(challenge.uuid, reason, response, cookie, challenge.kind).catch(() => {
+      if (challenge.expiresAt <= Date.now()) {
+        VpnStatus.updateStateString('NOPROCESS', R.s('otp_expired'), ConnectionStatus.LEVEL_NOTCONNECTED);
+        return;
+      }
+      VpnController.writePendingAuthChallenge(challenge);
+      this.activeAuthExpiresAt = 0;
+      promptAction.showToast({ message: R.s('auth_submit_failed') });
     });
   }
 
@@ -228,7 +304,12 @@ struct Index {
       // ---- Content ----
       Tabs({ index: this.currentIndex, barPosition: BarPosition.Start }) {
         TabContent() {
-          ProfilesTab({ sortTick: this.sortTick })
+          ProfilesTab({
+            sortTick: this.sortTick,
+            onImportProfile: () => {
+              this.importConfigFile();
+            }
+          })
         }
         .tabBar('')
 

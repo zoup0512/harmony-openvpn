@@ -1,8 +1,14 @@
 import { router, promptAction } from '@kit.ArkUI';
+import { common } from '@kit.AbilityKit';
 import { pasteboard } from '@kit.BasicServicesKit';
+import { photoAccessHelper } from '@kit.MediaLibraryKit';
+import fs from '@ohos.file.fs';
+import fileUri from '@ohos.file.fileuri';
+import { App } from '../common/App';
 import { Theme } from '../common/Theme';
 import { R } from '../common/Res';
 
+const DONATE_IMAGE_RESOURCE: string = 'donate_wx';
 const ABOUT_BACKGROUND: string = '#F5F7FB';
 const ABOUT_CARD_BACKGROUND: string = '#FFFFFF';
 const ABOUT_TEXT_PRIMARY: string = '#111827';
@@ -14,12 +20,76 @@ const FEEDBACK_TEXT: string = '#0F827A';
 @Entry
 @Component
 struct About {
+  private donateSaveInProgress: boolean = false;
+
   private copyEmail(): void {
     let pasteData = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, R.s('about_feedback_email'));
     pasteboard.getSystemPasteboard().setData(pasteData).then(() => {
       promptAction.showToast({ message: R.s('about_email_copied') });
     }).catch(() => {
+      promptAction.showToast({ message: R.s('about_email_copy_failed') });
     });
+  }
+
+  private async saveDonateImage(): Promise<void> {
+    if (this.donateSaveInProgress) {
+      return;
+    }
+    let appContext = App.context;
+    if (appContext === undefined) {
+      promptAction.showToast({ message: R.s('about_pay_save_failed') });
+      return;
+    }
+
+    this.donateSaveInProgress = true;
+    let context = appContext as common.UIAbilityContext;
+    let tempPath = `${context.cacheDir}/donate_wx_${Date.now()}.png`;
+    try {
+      let content = await context.resourceManager.getMediaByName(DONATE_IMAGE_RESOURCE);
+      if (content.byteLength === 0) {
+        throw new Error('The donation image is empty.');
+      }
+
+      let buffer = new ArrayBuffer(content.byteLength);
+      new Uint8Array(buffer).set(content);
+      let file = fs.openSync(tempPath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
+      try {
+        let written = fs.writeSync(file.fd, buffer);
+        if (written !== content.byteLength) {
+          throw new Error('The donation image was not written completely.');
+        }
+      } finally {
+        fs.closeSync(file);
+      }
+
+      let sourceUri = fileUri.getUriFromPath(tempPath);
+      let helper = photoAccessHelper.getPhotoAccessHelper(context);
+      let savedUris = await helper.showAssetsCreationDialog([sourceUri], [{
+        title: 'donate_wx',
+        fileNameExtension: 'png',
+        photoType: photoAccessHelper.PhotoType.IMAGE
+      }]);
+      if (savedUris.length > 0) {
+        let savedFile = fs.openSync(savedUris[0], fs.OpenMode.WRITE_ONLY);
+        try {
+          let written = fs.writeSync(savedFile.fd, buffer);
+          if (written !== content.byteLength) {
+            throw new Error('The donation image was not saved completely.');
+          }
+        } finally {
+          fs.closeSync(savedFile);
+        }
+        promptAction.showToast({ message: R.s('about_pay_saved') });
+      }
+    } catch (e) {
+      promptAction.showToast({ message: R.s('about_pay_save_failed') });
+    } finally {
+      try {
+        fs.unlinkSync(tempPath);
+      } catch (e) {
+      }
+      this.donateSaveInProgress = false;
+    }
   }
 
   @Builder
@@ -79,6 +149,9 @@ struct About {
         .width('100%')
         .aspectRatio(1242 / 1470)
         .objectFit(ImageFit.Contain)
+        .priorityGesture(LongPressGesture().onAction(() => {
+          this.saveDonateImage();
+        }))
 
       Text(R.s('about_pay_save_hint'))
         .fontSize(16)
@@ -124,7 +197,7 @@ struct About {
         .margin({ top: 20 })
         .backgroundColor(FEEDBACK_BACKGROUND)
         .borderRadius(24)
-        .gesture(LongPressGesture().onAction(() => {
+        .priorityGesture(LongPressGesture().onAction(() => {
           this.copyEmail();
         }))
 

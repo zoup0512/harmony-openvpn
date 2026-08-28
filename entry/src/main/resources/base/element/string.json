@@ -233,6 +233,46 @@
       "value": "Submitting verification code…"
     },
     {
+      "name": "credentials_title",
+      "value": "VPN credentials required"
+    },
+    {
+      "name": "credentials_message",
+      "value": "Enter the VPN server username and password. They are used only for this connection and will not be saved."
+    },
+    {
+      "name": "credentials_username_placeholder",
+      "value": "Username"
+    },
+    {
+      "name": "credentials_password_placeholder",
+      "value": "Password"
+    },
+    {
+      "name": "credentials_required",
+      "value": "Username and password are required"
+    },
+    {
+      "name": "state_waiting_for_user_input",
+      "value": "Waiting for authentication input…"
+    },
+    {
+      "name": "state_waiting_for_authentication",
+      "value": "Waiting for authentication…"
+    },
+    {
+      "name": "state_auth_failed",
+      "value": "Authentication failed"
+    },
+    {
+      "name": "otp_expired",
+      "value": "The authentication request expired"
+    },
+    {
+      "name": "auth_submit_failed",
+      "value": "Could not submit authentication data; please try again"
+    },
+    {
       "name": "submit",
       "value": "Submit"
     },
@@ -1469,6 +1509,14 @@
       "value": "Long-press the QR code to save the image"
     },
     {
+      "name": "about_pay_saved",
+      "value": "Image saved to Photos"
+    },
+    {
+      "name": "about_pay_save_failed",
+      "value": "Could not save the image"
+    },
+    {
       "name": "about_pay_thanks",
       "value": "Thank you for your support. Tips are entirely voluntary and do not affect any app features."
     },
@@ -1495,6 +1543,10 @@
     {
       "name": "about_email_copied",
       "value": "Email address copied"
+    },
+    {
+      "name": "about_email_copy_failed",
+      "value": "Could not copy the email address"
     },
     {
       "name": "profile_edit",

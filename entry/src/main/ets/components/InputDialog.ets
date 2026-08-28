@@ -18,6 +18,7 @@ export class InputDialogModel {
   neutralText: string = '';
   onOk: (text: string) => void = () => {
   };
+  validate: (text: string) => boolean = () => true;
   onCancel: () => void = () => {
   };
   onNeutral: () => void = () => {
@@ -91,6 +92,9 @@ export struct InputDialog {
           .fontColor(Theme.PRIMARY)
           .margin({ left: 8 })
           .onClick(() => {
+            if (!this.model.validate(this.text)) {
+              return;
+            }
             this.controller?.close();
             this.model.onOk(this.text);
           })

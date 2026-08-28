@@ -39,6 +39,7 @@ export class EngineOptions {
   response: string = '';
   dynamicChallengeCookie: string = '';
   ssoMethods: string = '';
+  connTimeout: number = 120;
   info: boolean = false;
 }
 
@@ -61,9 +62,11 @@ export class OvpnEngine {
   private stopped: boolean = false;
   private preserveChallengeOnDone: boolean = false;
   private vpnContext: vpnExtension.VpnExtensionContext;
+  private onDone?: () => void;
 
-  constructor(context: vpnExtension.VpnExtensionContext) {
+  constructor(context: vpnExtension.VpnExtensionContext, onDone?: () => void) {
     this.vpnContext = context;
+    this.onDone = onDone;
   }
 
   async start(profile: EngineOptions): Promise<void> {
@@ -87,7 +90,15 @@ export class OvpnEngine {
           return;
         }
         AuthChallengeManager.clear();
-        VpnStatus.updateStateString('NOPROCESS', event.info === '' ? 'Disconnected' : event.info);
+        // Keep the first authentication failure reason as the terminal status.
+        // OpenVPN3 may report DISCONNECTED/EXITING and a final connect status
+        // after AUTH_FAILED; those messages are usually generic or empty.
+        if (!this.isAuthenticationFailureState()) {
+          VpnStatus.updateStateString('NOPROCESS', event.info === '' ? 'Disconnected' : event.info);
+        }
+        if (this.onDone !== undefined) {
+          this.onDone();
+        }
       }
     });
 
@@ -243,6 +254,10 @@ export class OvpnEngine {
       ConnectionStatus.LEVEL_WAITING_FOR_USER_INPUT);
   }
 
+  private isAuthenticationFailureState(): boolean {
+    return VpnStatus.lastState === 'AUTH_FAILED' || VpnStatus.lastState === 'SESSION_EXPIRED';
+  }
+
   private applyEventState(event: OvpnNativeEvent): void {
     if (event.name === 'AUTH_PENDING') {
       AuthChallengeManager.set({
@@ -262,7 +277,8 @@ export class OvpnEngine {
       case 'AUTH_FAILED':
         this.preserveChallengeOnDone = false;
         AuthChallengeManager.clear();
-        VpnStatus.updateStateString('AUTH_FAILED', event.info, ConnectionStatus.LEVEL_AUTH_FAILED);
+        VpnStatus.updateStateString('AUTH_FAILED', event.info === '' ? 'Authentication failed' : event.info,
+          ConnectionStatus.LEVEL_AUTH_FAILED);
         break;
       case 'CONNECTING':
       case 'WAITING_FOR_CONNECTION':
@@ -285,12 +301,29 @@ export class OvpnEngine {
         VpnStatus.updateStateString('SESSION_EXPIRED', 'Authentication session expired',
           ConnectionStatus.LEVEL_AUTH_FAILED);
         break;
+      case 'CONNECTION_TIMEOUT':
+      case 'INACTIVE_TIMEOUT':
+      case 'TRANSPORT_ERROR':
+      case 'TUN_ERROR':
+      case 'TUN_SETUP_FAILED':
+      case 'PROXY_ERROR':
+      case 'CERT_VERIFY_FAIL':
+      case 'CLIENT_HALT':
+      case 'CLIENT_SETUP':
+        this.preserveChallengeOnDone = false;
+        AuthChallengeManager.clear();
+        if (!this.isAuthenticationFailureState()) {
+          VpnStatus.updateStateString('NOPROCESS', event.info === '' ? event.name : event.info,
+            ConnectionStatus.LEVEL_NOTCONNECTED);
+        }
         break;
       case 'DISCONNECTED':
       case 'EXITING':
         this.preserveChallengeOnDone = false;
         AuthChallengeManager.clear();
-        VpnStatus.updateStateString('NOPROCESS', event.info, ConnectionStatus.LEVEL_NOTCONNECTED);
+        if (!this.isAuthenticationFailureState()) {
+          VpnStatus.updateStateString('NOPROCESS', event.info, ConnectionStatus.LEVEL_NOTCONNECTED);
+        }
         break;
       default:
         break;

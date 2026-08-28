@@ -233,6 +233,46 @@
       "value": "正在提交验证码…"
     },
     {
+      "name": "credentials_title",
+      "value": "需要登录凭据"
+    },
+    {
+      "name": "credentials_message",
+      "value": "请输入 VPN 服务器的用户名和密码。凭据仅用于本次连接，不会保存。"
+    },
+    {
+      "name": "credentials_username_placeholder",
+      "value": "用户名"
+    },
+    {
+      "name": "credentials_password_placeholder",
+      "value": "密码"
+    },
+    {
+      "name": "credentials_required",
+      "value": "请输入用户名和密码"
+    },
+    {
+      "name": "state_waiting_for_user_input",
+      "value": "等待输入认证信息…"
+    },
+    {
+      "name": "state_waiting_for_authentication",
+      "value": "等待完成认证…"
+    },
+    {
+      "name": "state_auth_failed",
+      "value": "认证失败"
+    },
+    {
+      "name": "otp_expired",
+      "value": "认证请求已过期"
+    },
+    {
+      "name": "auth_submit_failed",
+      "value": "提交认证信息失败，请重试"
+    },
+    {
       "name": "submit",
       "value": "提交"
     },
@@ -1469,6 +1509,14 @@
       "value": "长按二维码保存照片"
     },
     {
+      "name": "about_pay_saved",
+      "value": "二维码已保存到图库"
+    },
+    {
+      "name": "about_pay_save_failed",
+      "value": "二维码保存失败"
+    },
+    {
       "name": "about_pay_thanks",
       "value": "感谢支持，打赏完全自愿，不影响应用任何功能。"
     },
@@ -1495,6 +1543,10 @@
     {
       "name": "about_email_copied",
       "value": "邮箱已复制"
+    },
+    {
+      "name": "about_email_copy_failed",
+      "value": "邮箱复制失败"
     },
     {
       "name": "profile_edit",

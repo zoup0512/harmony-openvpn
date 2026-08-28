@@ -25,6 +25,8 @@ export interface OvpnStartOptions {
   dynamicChallengeCookie?: string;
   /** Defaults to "webauth,crtext" when omitted or empty. */
   ssoMethods?: string;
+  /** Overall connection timeout in seconds; zero means no timeout. */
+  connTimeout?: number;
   /** Defaults to true when omitted. */
   info?: boolean;
 }

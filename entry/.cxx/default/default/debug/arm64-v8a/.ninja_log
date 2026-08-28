@@ -20,3 +20,7 @@
 3	1932	8094408598732552	CMakeFiles/ovpnexec.dir/ovpn_napi.cpp.o	ea57d7b29062c2cf
 4	8875	8094408598748012	CMakeFiles/ovpnexec.dir/D_/workspace/My/harmony/harmony-openvpn/native/third_party/openvpn3/client/ovpncli.cpp.o	7448001ed7d46325
 8875	9039	8094408687451668	D:/workspace/My/harmony/harmony-openvpn/entry/build/default/intermediates/cmake/default/obj/arm64-v8a/libovpnexec.so	aa4164e38b8c67ca
+8	1778	8095907544889159	CMakeFiles/ovpnexec.dir/ovpn_napi.cpp.o	ea57d7b29062c2cf
+1778	1942	8095907562586785	D:/workspace/My/harmony/harmony-openvpn/entry/build/default/intermediates/cmake/default/obj/arm64-v8a/libovpnexec.so	aa4164e38b8c67ca
+12	2814	8096087314901230	CMakeFiles/ovpnexec.dir/ovpn_napi.cpp.o	ea57d7b29062c2cf
+2814	3111	8096087342921423	D:/workspace/My/harmony/harmony-openvpn/entry/build/default/intermediates/cmake/default/obj/arm64-v8a/libovpnexec.so	aa4164e38b8c67ca

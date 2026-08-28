@@ -154,7 +154,8 @@ export class Connection {
 
   static fromJson(o: Record<string, Object>): Connection {
     let c = new Connection();
-    c.mServerName = (o['mServerName'] as string) ?? 'openvpn.example.com';
+    let serverName = o['mServerName'];
+    c.mServerName = typeof serverName === 'string' ? serverName : '';
     c.mServerPort = (o['mServerPort'] as string) ?? '1194';
     c.mUseUdp = (o['mUseUdp'] as boolean) ?? true;
     c.mCustomConfiguration = (o['mCustomConfiguration'] as string) ?? '';

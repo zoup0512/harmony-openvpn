@@ -214,30 +214,52 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
       }
     }
     if (this.running && (reason === 'otp' || reason === 'credentials')) {
-      let oldEngine = this.engine;
-      this.running = false;
-      if (oldEngine !== undefined) {
-        oldEngine.stop().then(() => {
-          if (this.engine === oldEngine) {
-            this.engine = undefined;
-          }
-          this.connect(uuid as string, reason, response, dynamicChallengeCookie, username, password);
-        }).catch(() => {
-          if (this.engine === oldEngine) {
-            this.engine = undefined;
-          }
-          this.connect(uuid as string, reason, response, dynamicChallengeCookie, username, password);
-        });
-      } else {
-        this.connect(uuid, reason, response, dynamicChallengeCookie, username, password);
-      }
+      this.stopEngineAndConnect(uuid, reason, response, dynamicChallengeCookie, username, password);
       return;
     }
     if (this.running) {
-      VpnStatus.logMessage(LogLevel.DEBUG, `Ignoring duplicate VPN start from ${source}.`);
+      let currentUuid = VpnStatus.getLastConnectedVPNProfile();
+      if (currentUuid === uuid) {
+        // Re-delivered start want for the profile that is already up.
+        VpnStatus.logMessage(LogLevel.DEBUG, `Ignoring duplicate VPN start from ${source}.`);
+        return;
+      }
+      // A different profile was requested while a tunnel is up: HarmonyOS
+      // allows only one active VPN, so stop the old tunnel and start the
+      // requested one. Dropping the request here used to leave taps on
+      // another profile's switch without any response.
+      VpnStatus.logMessage(LogLevel.INFO,
+        `VPN start from ${source} requests profile ${uuid} while ${currentUuid} is active; switching.`);
+      this.stopEngineAndConnect(uuid, reason, response, dynamicChallengeCookie, username, password);
       return;
     }
     this.connect(uuid, reason, response, dynamicChallengeCookie, username, password);
+  }
+
+  /**
+   * Tear down the running engine, then connect the requested profile. Used
+   * for credential resubmission on the active profile and for switching to a
+   * different profile while a tunnel is up.
+   */
+  private stopEngineAndConnect(uuid: string, reason: string, response: string,
+    dynamicChallengeCookie: string, username: string, password: string): void {
+    let oldEngine = this.engine;
+    this.running = false;
+    if (oldEngine === undefined) {
+      this.connect(uuid, reason, response, dynamicChallengeCookie, username, password);
+      return;
+    }
+    oldEngine.stop().then(() => {
+      if (this.engine === oldEngine) {
+        this.engine = undefined;
+      }
+      this.connect(uuid, reason, response, dynamicChallengeCookie, username, password);
+    }).catch(() => {
+      if (this.engine === oldEngine) {
+        this.engine = undefined;
+      }
+      this.connect(uuid, reason, response, dynamicChallengeCookie, username, password);
+    });
   }
 
   private rememberSessionCredentials(uuid: string, username: string, password: string): void {

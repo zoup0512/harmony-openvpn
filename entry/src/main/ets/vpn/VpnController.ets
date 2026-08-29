@@ -5,6 +5,7 @@
 import vpnExtension from '@ohos.net.vpnExtension';
 import Want from '@ohos.app.ability.Want';
 import fs from '@ohos.file.fs';
+import notificationManager from '@ohos.notificationManager';
 import { App } from '../common/App';
 import { FileUtil } from '../common/FileUtil';
 import { VpnStatus } from '../core/VpnStatus';
@@ -27,15 +28,29 @@ export class PendingAuthChallenge {
   echo: boolean = false;
   responseRequired: boolean = true;
   cookie: string = '';
+  // When an OTP arrived but no password was available, the response rides
+  // here so the credentials resubmission completes the same challenge round
+  // (also survives a VPN extension process restart, unlike memory state).
+  response: string = '';
   username: string = '';
+  expiresAt: number = 0;
+}
+
+export class SessionCredentialsRecord {
+  uuid: string = '';
+  username: string = '';
+  password: string = '';
   expiresAt: number = 0;
 }
 
 export class VpnController {
   static readonly BUNDLE_NAME: string = 'com.razor.tools.openvpn';
   static readonly ABILITY_NAME: string = 'VpnServiceAbility';
+  /** Same id as the extension's ongoing VPN notification. */
+  static readonly VPN_NOTIFICATION_ID: number = 1;
   private static readonly PENDING_START_FILENAME: string = 'pending-start.json';
   private static readonly PENDING_AUTH_FILENAME: string = 'pending-auth.challenge';
+  private static readonly SESSION_CREDS_FILENAME: string = 'session-creds.json';
 
   static startVpn(uuid: string, reason: string, response: string = '',
     dynamicChallengeCookie: string = '', authKind: string = '', username: string = '',
@@ -93,6 +108,7 @@ export class VpnController {
       let echo = rec['echo'];
       let responseRequired = rec['responseRequired'];
       let cookie = rec['cookie'];
+      let response = rec['response'];
       let username = rec['username'];
       if (typeof uuid === 'string') {
         info.uuid = uuid;
@@ -111,6 +127,9 @@ export class VpnController {
       }
       if (typeof cookie === 'string') {
         info.cookie = cookie;
+      }
+      if (typeof response === 'string') {
+        info.response = response;
       }
       if (typeof username === 'string') {
         info.username = username;
@@ -131,9 +150,99 @@ export class VpnController {
     VpnController.clearPendingStart();
   }
 
+  // ---- Session credentials bridge -------------------------------------
+  // The VPN extension ability instance can be destroyed and recreated while
+  // the user fetches an OTP (in-memory session credentials die with it).
+  // Bridge them through the same app-private, short-TTL, auto-wiped file
+  // mechanism used for the CRV1 challenge cookie.
+
+  static writeSessionCredentials(uuid: string, username: string, password: string,
+    expiresAt: number): void {
+    let path = VpnController.sessionCredsPath();
+    if (path === undefined) {
+      return;
+    }
+    let rec = new SessionCredentialsRecord();
+    rec.uuid = uuid;
+    rec.username = username;
+    rec.password = password;
+    rec.expiresAt = expiresAt;
+    try {
+      FileUtil.writeText(path, JSON.stringify(rec));
+      VpnStatus.logMessage(LogLevel.DEBUG,
+        `Session credentials bridged for ${uuid} (expires in ${Math.max(0, expiresAt - Date.now())}ms).`);
+    } catch (e) {
+      let message = e instanceof Error ? e.message : `${e}`;
+      VpnStatus.logMessage(LogLevel.WARNING, `Failed to bridge session credentials: ${message}`);
+    }
+  }
+
+  static readSessionCredentials(): SessionCredentialsRecord | undefined {
+    let path = VpnController.sessionCredsPath();
+    if (path === undefined) {
+      return undefined;
+    }
+    try {
+      if (!fs.accessSync(path)) {
+        return undefined;
+      }
+      let rec = JSON.parse(fs.readTextSync(path)) as Record<string, Object>;
+      let uuid = rec['uuid'];
+      let expiresAt = rec['expiresAt'];
+      if (typeof uuid !== 'string' || uuid === '' || typeof expiresAt !== 'number') {
+        VpnController.clearSessionCredentialsFile();
+        return undefined;
+      }
+      if (expiresAt <= Date.now()) {
+        VpnController.clearSessionCredentialsFile();
+        return undefined;
+      }
+      let out = new SessionCredentialsRecord();
+      out.uuid = uuid;
+      out.expiresAt = expiresAt;
+      let u = rec['username'];
+      if (typeof u === 'string') {
+        out.username = u;
+      }
+      let p = rec['password'];
+      if (typeof p === 'string') {
+        out.password = p;
+      }
+      return out;
+    } catch (e) {
+      VpnController.clearSessionCredentialsFile();
+      return undefined;
+    }
+  }
+
+  static clearSessionCredentialsFile(): void {
+    VpnController.deleteFile(VpnController.sessionCredsPath());
+  }
+
+  private static sessionCredsPath(): string | undefined {
+    return VpnController.filePath(VpnController.SESSION_CREDS_FILENAME);
+  }
+
+  /**
+   * Cancel the ongoing VPN notification from any process of this bundle.
+   * Notifications do not die with the publishing process: when the VPN
+   * extension was killed without onDestroy, its "Connected" notice would
+   * otherwise linger forever.
+   */
+  static cancelVpnNotification(): void {
+    try {
+      notificationManager.cancel(VpnController.VPN_NOTIFICATION_ID);
+    } catch (e) {
+      // nothing published — fine
+    }
+  }
+
   static stopVpn(): Promise<void> {
     VpnController.clearPendingStart();
     VpnController.clearPendingAuthChallenge();
+    // The extension cancels its own notification on onDestroy, but if it was
+    // already dead there is nobody left to cancel — do it here as well.
+    VpnController.cancelVpnNotification();
     let want: Want = {
       bundleName: VpnController.BUNDLE_NAME,
       abilityName: VpnController.ABILITY_NAME

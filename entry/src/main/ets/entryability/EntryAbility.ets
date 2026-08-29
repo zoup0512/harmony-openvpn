@@ -4,6 +4,8 @@ import { window } from '@kit.ArkUI';
 import { App } from '../common/App';
 import { R } from '../common/Res';
 import { ProfileManager } from '../core/ProfileManager';
+import { VpnStatus } from '../core/VpnStatus';
+import { ConnectionStatus } from '../core/LogItem';
 import { VpnController } from '../vpn/VpnController';
 
 const SHORTCUT_PROFILE_UUID = 'de.blinkt.openvpn.profileUUID';
@@ -24,13 +26,71 @@ export default class EntryAbility extends UIAbility {
     App.init(this.context);
     R.init(this.context);
     hilog.info(DOMAIN, 'OpenVPN', '%{public}s', 'Ability onCreate');
+    this.logWant('onCreate', want);
+    this.healStaleVpnNotification();
     this.handleShortcutWant(want);
   }
 
   onNewWant(want: Want, launchParam: AbilityConstant.LaunchParam): void {
     App.init(this.context);
     hilog.info(DOMAIN, 'OpenVPN', '%{public}s', 'Ability onNewWant');
+    this.logWant('onNewWant', want);
+    this.healStaleVpnNotification();
     this.handleShortcutWant(want);
+  }
+
+  /**
+   * The VPN notification does not die with the extension process. If it was
+   * killed without onDestroy (system reclaim), its "Connected" notice lingers
+   * while the tunnel is gone. When the app opens, the persisted state machine
+   * is authoritative: terminal state + lingering notice = remove the notice.
+   */
+  private healStaleVpnNotification(): void {
+    try {
+      VpnStatus.restoreFromSnapshot();
+      if (VpnStatus.lastLevel === ConnectionStatus.LEVEL_NOTCONNECTED ||
+        VpnStatus.lastLevel === ConnectionStatus.LEVEL_AUTH_FAILED) {
+        VpnController.cancelVpnNotification();
+        hilog.info(DOMAIN, 'OpenVPN', '%{public}s', 'healed stale VPN notification');
+      }
+    } catch (e) {
+      // snapshot missing — nothing to heal
+    }
+  }
+
+  /** Redacted want summary — identifies who launched the UI and with what parameters. */
+  private logWant(source: string, want: Want): void {
+    try {
+      let parts: string[] = [];
+      if (want.action !== undefined) {
+        parts.push(`action=${want.action}`);
+      }
+      if (want.uri !== undefined) {
+        parts.push(`uri=${want.uri}`);
+      }
+      if (want.bundleName !== undefined) {
+        parts.push(`bundle=${want.bundleName}`);
+      }
+      let params = want.parameters as Record<string, Object> | undefined;
+      if (params === undefined || params === null) {
+        parts.push('params=none');
+      } else {
+        let described: string[] = [];
+        let keys = Object.keys(params);
+        for (let key of keys) {
+          let v: Object | undefined = params[key];
+          if (key === SHORTCUT_PROFILE_UUID || key === SHORTCUT_START_REASON) {
+            described.push(`${key}=${v === undefined || v === null ? 'null' : `${v}`}`);
+          } else {
+            described.push(`${key}:${v === undefined || v === null ? 'null' : typeof v}`);
+          }
+        }
+        parts.push(`params{${described.join(', ')}}`);
+      }
+      hilog.info(DOMAIN, 'OpenVPN', 'EntryAbility %{public}s want: %{public}s', source, parts.join(' '));
+    } catch (e) {
+      hilog.warn(DOMAIN, 'OpenVPN', 'EntryAbility %{public}s want describe failed', source);
+    }
   }
 
   private handleShortcutWant(want: Want): void {

@@ -59,6 +59,11 @@ struct EvMsg {
 
 napi_threadsafe_function g_tsfn = nullptr;
 std::thread g_worker;
+// g_running guards single-tunnel ownership; a restart (OTP/credentials
+// resubmission) must wait for the previous worker to fully unwind instead
+// of failing with "tunnel already running".
+std::mutex g_run_mtx;
+std::condition_variable g_run_cv;
 std::atomic<bool> g_running{false};
 std::atomic<bool> g_client_ready{false};
 std::mutex g_client_mtx; // protects the client pointer during start/stop/event callbacks
@@ -547,12 +552,21 @@ napi_value StartTunnel(napi_env env, napi_callback_info info)
     napi_value okv;
     napi_value errv;
 
-    if (g_running.exchange(true)) {
-        napi_get_boolean(env, false, &okv);
-        napi_create_string_utf8(env, "tunnel already running", NAPI_AUTO_LENGTH, &errv);
-        napi_set_named_property(env, result, "ok", okv);
-        napi_set_named_property(env, result, "error", errv);
-        return result;
+    // Claim the single-tunnel slot. An OTP/credentials resubmission stops the
+    // previous engine first; the ArkTS stop() only waits for the TUN destroy,
+    // so the old worker thread may still be unwinding here. Wait for it
+    // instead of failing with "tunnel already running".
+    {
+        std::unique_lock<std::mutex> lock(g_run_mtx);
+        if (!g_run_cv.wait_for(lock, std::chrono::seconds(5),
+                               [] { return !g_running; })) {
+            napi_get_boolean(env, false, &okv);
+            napi_create_string_utf8(env, "previous tunnel still stopping", NAPI_AUTO_LENGTH, &errv);
+            napi_set_named_property(env, result, "ok", okv);
+            napi_set_named_property(env, result, "error", errv);
+            return result;
+        }
+        g_running = true;
     }
     auto *client = new NapiClient();
     {
@@ -581,7 +595,11 @@ napi_value StartTunnel(napi_env env, napi_callback_info info)
             }
             g_client_ready = false;
         }
-        g_running = false;
+        {
+            std::lock_guard<std::mutex> lock(g_run_mtx);
+            g_running = false;
+        }
+        g_run_cv.notify_all();
         napi_get_boolean(env, false, &okv);
         napi_create_string_utf8(env, eval.message.c_str(), NAPI_AUTO_LENGTH, &errv);
         napi_set_named_property(env, result, "ok", okv);
@@ -607,7 +625,11 @@ napi_value StartTunnel(napi_env env, napi_callback_info info)
                 }
                 g_client_ready = false;
             }
-            g_running = false;
+            {
+                std::lock_guard<std::mutex> lock(g_run_mtx);
+                g_running = false;
+            }
+            g_run_cv.notify_all();
             napi_get_boolean(env, false, &okv);
             std::string message = st.message.empty() ? "Unable to provide VPN credentials" : st.message;
             napi_create_string_utf8(env, message.c_str(), NAPI_AUTO_LENGTH, &errv);
@@ -629,7 +651,11 @@ napi_value StartTunnel(napi_env env, napi_callback_info info)
                 g_client = nullptr;
             }
         }
-        g_running = false;
+        {
+            std::lock_guard<std::mutex> lock(g_run_mtx);
+            g_running = false;
+        }
+        g_run_cv.notify_all();
     });
     g_worker.detach();
 

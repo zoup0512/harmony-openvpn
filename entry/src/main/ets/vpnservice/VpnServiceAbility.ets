@@ -28,12 +28,18 @@ import notificationManager from '@ohos.notificationManager';
 import notification from '@ohos.notification';
 import deviceInfo from '@ohos.deviceInfo';
 
-const NOTIFICATION_ID = 1;
+// Shared with VpnController so the UI process can cancel the same notice.
+const NOTIFICATION_ID = VpnController.VPN_NOTIFICATION_ID;
 
 class SessionCredentials {
   username: string = '';
   password: string = '';
 }
+
+// Credentials typed in the dialog stay valid across the OTP round-trip;
+// 120s was too short for users fetching a code from an authenticator app,
+// which bounced them back to the username/password dialog forever.
+const SESSION_CREDENTIALS_TTL_MS = 600000;
 
 export default class VpnServiceAbility extends VpnExtensionAbility {
   private running: boolean = false;
@@ -43,6 +49,13 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
   private sessionUsername: string = '';
   private sessionPassword: string = '';
   private sessionCredentialsExpiresAt: number = 0;
+  // A dynamic-challenge OTP that arrived while no password was available;
+  // reattached to the immediate credentials resubmission instead of being
+  // dropped (CRV1 cookies are short-lived, the ping-pong used to discard it).
+  private stashedOtpProfileUuid: string = '';
+  private stashedOtpResponse: string = '';
+  private stashedOtpCookie: string = '';
+  private stashedOtpExpiresAt: number = 0;
   private statusListener?: (level: ConnectionStatus, cleanMessage: string, logItem: LogItem) => void;
   private statusListenerInstalled: boolean = false;
 
@@ -241,27 +254,70 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
     if (password !== '') {
       this.sessionPassword = password;
     }
-    this.sessionCredentialsExpiresAt = Date.now() + 120000;
+    this.sessionCredentialsExpiresAt = Date.now() + SESSION_CREDENTIALS_TTL_MS;
+    // The extension instance may be recreated before the OTP comes back;
+    // bridge the credentials so the next instance can complete the round.
+    VpnController.writeSessionCredentials(uuid, this.sessionUsername, this.sessionPassword,
+      this.sessionCredentialsExpiresAt);
   }
 
   private sessionCredentialsFor(uuid: string): SessionCredentials | undefined {
     if (this.sessionCredentialProfileUuid !== uuid || this.sessionCredentialsExpiresAt <= Date.now()) {
-      if (this.sessionCredentialProfileUuid === uuid) {
-        this.clearSessionCredentials();
+      // Memory-only reset: the bridge file must survive so a recreated
+      // extension instance (the usual fate while the user fetches an OTP)
+      // can still hydrate from it.
+      this.resetSessionCredentialsMemory();
+      let bridged = VpnController.readSessionCredentials();
+      if (bridged !== undefined && bridged.uuid === uuid &&
+        (bridged.username !== '' || bridged.password !== '')) {
+        this.sessionCredentialProfileUuid = uuid;
+        this.sessionUsername = bridged.username;
+        this.sessionPassword = bridged.password;
+        this.sessionCredentialsExpiresAt = bridged.expiresAt;
+        VpnStatus.logMessage(LogLevel.INFO,
+          'Session credentials restored from bridge file (extension instance was recreated).');
       }
+    }
+    if (this.sessionCredentialProfileUuid !== uuid || this.sessionCredentialsExpiresAt <= Date.now()) {
       return undefined;
     }
+    // Refresh: an OTP resubmission relying on them must not see them expire
+    // mid-flow.
+    this.sessionCredentialsExpiresAt = Date.now() + SESSION_CREDENTIALS_TTL_MS;
+    VpnController.writeSessionCredentials(uuid, this.sessionUsername, this.sessionPassword,
+      this.sessionCredentialsExpiresAt);
     let credentials = new SessionCredentials();
     credentials.username = this.sessionUsername;
     credentials.password = this.sessionPassword;
     return credentials;
   }
 
-  private clearSessionCredentials(): void {
+  /** Clears in-memory session credentials WITHOUT touching the bridge file. */
+  private resetSessionCredentialsMemory(): void {
     this.sessionCredentialProfileUuid = '';
     this.sessionUsername = '';
     this.sessionPassword = '';
     this.sessionCredentialsExpiresAt = 0;
+  }
+
+  /** Full wipe: memory + bridge file. Terminal outcomes only (connected, auth failed, abandoned). */
+  private clearSessionCredentials(): void {
+    this.resetSessionCredentialsMemory();
+    VpnController.clearSessionCredentialsFile();
+  }
+
+  private stashOtp(uuid: string, response: string, cookie: string): void {
+    this.stashedOtpProfileUuid = uuid;
+    this.stashedOtpResponse = response;
+    this.stashedOtpCookie = cookie;
+    this.stashedOtpExpiresAt = Date.now() + 120000;
+  }
+
+  private clearStashedOtp(): void {
+    this.stashedOtpProfileUuid = '';
+    this.stashedOtpResponse = '';
+    this.stashedOtpCookie = '';
+    this.stashedOtpExpiresAt = 0;
   }
 
   private scheduleAuthWaitTimeout(expiresAt: number): void {
@@ -311,7 +367,12 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
     super.onDestroy();
     this.clearAuthWaitTimeout();
     this.running = false;
-    this.clearSessionCredentials();
+    // Keep the bridge file here: the system routinely destroys and recreates
+    // this ability instance while the user fetches an OTP, and the next
+    // instance needs those credentials to complete the challenge round. The
+    // file carries its own TTL and terminal wipes.
+    this.resetSessionCredentialsMemory();
+    this.clearStashedOtp();
     if (this.engine !== undefined) {
       this.engine.stop().catch(() => {
       });
@@ -383,6 +444,20 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
         password = sessionCredentials.password;
       }
     }
+    // Reattach a stashed OTP so the credentials resubmission completes the
+    // SAME challenge round instead of triggering a fresh one.
+    if (response === '' && dynamicChallengeCookie === '' &&
+      this.stashedOtpProfileUuid === uuid && this.stashedOtpExpiresAt > Date.now()) {
+      response = this.stashedOtpResponse;
+      dynamicChallengeCookie = this.stashedOtpCookie;
+      VpnStatus.logMessage(LogLevel.INFO,
+        'Merged the stashed dynamic-challenge response into this connection attempt.');
+    }
+    this.clearStashedOtp();
+    VpnStatus.logMessage(LogLevel.INFO,
+      `connect(): reason=${reason}, hasUser=${username !== ''}, hasPass=${password !== ''}, ` +
+      `hasResponse=${response !== ''}, hasCookie=${dynamicChallengeCookie !== ''}, ` +
+      `sessionCreds=${sessionCredentials !== undefined}.`);
 
     let profile = ProfileManager.get(uuid);
     if (profile === undefined || profile === null) {
@@ -421,12 +496,24 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
         ConnectionStatus.LEVEL_WAITING_FOR_USER_INPUT);
       this.publishNotification('OpenVPN', this.stateMsg('USER_INPUT'));
       this.scheduleAuthWaitTimeout(pending.expiresAt);
+      // No engine exists while waiting for input; leaving running=true made
+      // the next start (e.g. 'main profile list' resubmission) look like a
+      // duplicate and it was silently dropped.
+      this.running = false;
       return;
     }
 
     let missingPw = profile.needUserPWInputStr();
     if (missingPw === 'password' && profile.isUserPWAuth() &&
       (effectiveUsername === '' || effectivePassword === '')) {
+      if (dynamicChallengeCookie !== '') {
+        // The OTP is useless without the password; keep it for the immediate
+        // credentials resubmission so the same challenge round completes.
+        // The pending-auth file also carries it across an extension restart.
+        this.stashOtp(uuid, response, dynamicChallengeCookie);
+        VpnStatus.logMessage(LogLevel.WARNING,
+          'OTP arrived without a usable password: asking for credentials again, OTP kept for retry.');
+      }
       let pending = new PendingAuthChallenge();
       pending.uuid = uuid;
       pending.kind = 'credentials';
@@ -434,12 +521,15 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
       pending.echo = false;
       pending.responseRequired = true;
       pending.username = effectiveUsername;
+      pending.cookie = dynamicChallengeCookie;
+      pending.response = response;
       pending.expiresAt = Date.now() + 120000;
       VpnController.writePendingAuthChallenge(pending);
       VpnStatus.updateStateString('USER_INPUT', 'Waiting for username and password',
         ConnectionStatus.LEVEL_WAITING_FOR_USER_INPUT);
       this.publishNotification('OpenVPN', this.stateMsg('USER_INPUT'));
       this.scheduleAuthWaitTimeout(pending.expiresAt);
+      this.running = false;
       return;
     }
     if (missingPw !== '' && !(missingPw === 'password' && profile.isUserPWAuth())) {
@@ -495,6 +585,10 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
       this.cancelNotification();
     });
     this.engine = currentEngine;
+    VpnStatus.logMessage(LogLevel.INFO,
+      `Starting OpenVPN3 engine: reason=${reason}, hasUser=${effectiveUsername !== ''}, ` +
+      `hasPass=${effectivePassword !== ''}, hasResponse=${response !== ''}, ` +
+      `hasCookie=${dynamicChallengeCookie !== ''}.`);
     try {
       await this.engine.start({
         content: configText,

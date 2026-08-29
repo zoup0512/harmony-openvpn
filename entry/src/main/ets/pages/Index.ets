@@ -17,7 +17,7 @@ import { InputDialog, InputDialogModel } from '../components/InputDialog';
 import { CredentialsDialog, CredentialsDialogModel } from '../components/CredentialsDialog';
 import { VpnController, PendingAuthChallenge } from '../vpn/VpnController';
 import { VpnStatus } from '../core/VpnStatus';
-import { ConnectionStatus } from '../core/LogItem';
+import { ConnectionStatus, LogLevel } from '../core/LogItem';
 
 @Entry
 @Component
@@ -88,6 +88,9 @@ struct Index {
     }
     if (challenge.kind === 'credentials') {
       this.activeAuthExpiresAt = challenge.expiresAt;
+      VpnStatus.logMessage(LogLevel.INFO,
+        `[auth-ui] showing credentials dialog (hasResponse=${challenge.response !== ''}, ` +
+        `hasCookie=${challenge.cookie !== ''}).`);
       this.showCredentialsDialog(challenge);
       return;
     }
@@ -100,6 +103,8 @@ struct Index {
     pending.cookie = challenge.cookie;
     pending.expiresAt = challenge.expiresAt;
     this.activeAuthExpiresAt = pending.expiresAt;
+    VpnStatus.logMessage(LogLevel.INFO,
+      `[auth-ui] showing OTP dialog (kind=${challenge.kind}, hasCookie=${challenge.cookie !== ''}).`);
     this.authModel.title = R.s('otp_title');
     this.authModel.message = pending.challenge === '' ? R.s('otp_message') : pending.challenge;
     this.authModel.placeholder = R.s('otp_placeholder');
@@ -149,7 +154,10 @@ struct Index {
       this.credentialsDialogOpen = false;
       VpnController.clearPendingAuthChallenge();
       this.activeAuthExpiresAt = 0;
-      VpnController.startVpn(challenge.uuid, 'credentials', '', '', '', trimmedUsername, password).catch(() => {
+      // An OTP collected before the password was available rides back with
+      // the credentials so the same challenge round completes.
+      VpnController.startVpn(challenge.uuid, 'credentials', challenge.response, challenge.cookie, '',
+        trimmedUsername, password).catch(() => {
         VpnController.writePendingAuthChallenge(challenge);
         this.activeAuthExpiresAt = 0;
         promptAction.showToast({ message: R.s('auth_submit_failed') });
@@ -169,7 +177,9 @@ struct Index {
   }
 
   private submitPendingAuth(challenge: PendingAuthChallenge, value: string): void {
-    let response = value.trim();
+    // Authenticator apps often render codes with grouping spaces ("123 456");
+    // an OTP never contains whitespace, so strip all of it.
+    let response = value.replace(/\s/g, '');
     VpnController.clearPendingAuthChallenge();
     this.activeAuthExpiresAt = 0;
     promptAction.showToast({ message: R.s('otp_retrying') });

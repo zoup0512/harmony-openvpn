@@ -3,9 +3,10 @@
  * Central status/event hub shared between UI and the VPN extension ability.
  */
 
-import { ConnectionStatus, LogItem, LogLevel } from './LogItem';
+import { ConnectionStatus, LogItem, LogLevel, logLevelName } from './LogItem';
 import { TrafficHistory } from './TrafficHistory';
 import fs from '@ohos.file.fs';
+import hilog from '@ohos.hilog';
 import { FileUtil } from '../common/FileUtil';
 import { Context } from '@kit.AbilityKit';
 
@@ -124,6 +125,7 @@ export class VpnStatus {
   }
 
   static insertLogItem(li: LogItem): void {
+    VpnStatus.toHilog(li);
     VpnStatus.logbuffer.push(li);
     if (VpnStatus.logbuffer.length > VpnStatus.MAXLOGENTRIES + 500) {
       VpnStatus.logbuffer = VpnStatus.logbuffer.slice(500);
@@ -133,6 +135,34 @@ export class VpnStatus {
       l(li);
     }
     VpnStatus.persistSoon();
+  }
+
+  /**
+   * Mirror every log/state line to hilog (tag OVPN) so the full VPN state
+   * machine can be captured with `hdc hilog` — the in-app log window only
+   * shows the UI process buffer and is easy to miss during repro.
+   */
+  private static toHilog(li: LogItem): void {
+    try {
+      let msg = `[${logLevelName(li.level)}] ${li.message}`;
+      switch (li.level) {
+        case LogLevel.ERROR:
+          hilog.error(0, 'OVPN', '%{public}s', msg);
+          break;
+        case LogLevel.WARNING:
+          hilog.warn(0, 'OVPN', '%{public}s', msg);
+          break;
+        case LogLevel.INFO:
+        case LogLevel.VERBOSE:
+          hilog.info(0, 'OVPN', '%{public}s', msg);
+          break;
+        default:
+          hilog.debug(0, 'OVPN', '%{public}s', msg);
+          break;
+      }
+    } catch (e) {
+      // hilog must never break the VPN state machine
+    }
   }
 
   static updateStateString(state: string, cleanMessage: string, level?: ConnectionStatus): void {

@@ -185,6 +185,13 @@ export class OvpnEngine {
 
     VpnStatus.logMessage(event.error ? LogLevel.ERROR : LogLevel.WARNING,
       `[OpenVPN3 event] DYNAMIC_CHALLENGE: ${this.challengeSummaryText(details)}`);
+    // The challenge text is shown to the user in the dialog anyway; log it
+    // (truncated) so captures reveal what the server actually asked for.
+    if (details.challenge !== '') {
+      let text = details.challenge.length > 120 ?
+        details.challenge.substring(0, 117) + '...' : details.challenge;
+      VpnStatus.logMessage(LogLevel.INFO, `[OpenVPN3] challenge text: ${text}`);
+    }
     VpnStatus.updateStateString('USER_INPUT', 'Waiting for dynamic authentication challenge response',
       ConnectionStatus.LEVEL_WAITING_FOR_USER_INPUT);
   }
@@ -319,9 +326,13 @@ export class OvpnEngine {
         break;
       case 'DISCONNECTED':
       case 'EXITING':
-        this.preserveChallengeOnDone = false;
+        // openvpn3 always follows a dynamic challenge with DISCONNECTED +
+        // done (the auth attempt ended, the user has not answered yet).
+        // Keep preserveChallengeOnDone so the done handler does not wipe the
+        // session credentials the OTP round depends on, and keep the
+        // USER_INPUT status instead of flipping to NOPROCESS.
         AuthChallengeManager.clear();
-        if (!this.isAuthenticationFailureState()) {
+        if (!this.isAuthenticationFailureState() && !this.preserveChallengeOnDone) {
           VpnStatus.updateStateString('NOPROCESS', event.info, ConnectionStatus.LEVEL_NOTCONNECTED);
         }
         break;

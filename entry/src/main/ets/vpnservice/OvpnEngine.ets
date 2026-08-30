@@ -98,6 +98,11 @@ export class OvpnEngine {
         if (!this.isAuthenticationFailureState()) {
           VpnStatus.updateStateString('NOPROCESS', event.info === '' ? 'Disconnected' : event.info);
         }
+        // The core stopped itself (server disconnect, transport error, auth
+        // failure): nobody calls stop() for this engine, so the system VPN
+        // connection must be destroyed here. Leaving it alive keeps the TUN
+        // registered and the status bar VPN icon shows a disconnected tunnel.
+        this.destroyVpnConnection();
         if (this.onDone !== undefined) {
           this.onDone();
         }
@@ -131,13 +136,26 @@ export class OvpnEngine {
     this.stopStatsPolling();
     ovpnexec.stopTunnel();
     AuthChallengeManager.clear();
-    if (this.connection !== undefined) {
-      try {
-        await this.connection.destroy();
-      } catch (e) {
-        console.warn('[OpenVPN3] destroy TUN failed');
-      }
-      this.connection = undefined;
+    await this.destroyVpnConnection();
+  }
+
+  /**
+   * Destroy the system-side VPN connection (TUN) owned by this engine and
+   * drop the reference. Harmless when no TUN was ever established (failure
+   * during authentication).
+   */
+  private async destroyVpnConnection(): Promise<void> {
+    let conn = this.connection;
+    this.connection = undefined;
+    if (conn === undefined) {
+      return;
+    }
+    VpnStatus.logMessage(LogLevel.DEBUG, 'Destroying system VPN connection (TUN teardown).');
+    try {
+      await conn.destroy();
+    } catch (e) {
+      // No TUN exists yet — nothing to tear down.
+      VpnStatus.logMessage(LogLevel.DEBUG, 'TUN destroy found no active VPN connection (expected before connect).');
     }
   }
 
@@ -466,20 +484,26 @@ export class OvpnEngine {
       isIPv6Accepted: ipv6Accepted,
       isBlocking: true
     };
-    if (this.connection === undefined) {
+    // Capture the connection object: a concurrent stop() nulls this.connection
+    // while create() below is still in flight, and the just-created TUN must
+    // stay reachable so the stopped branch below can tear it down.
+    let conn = this.connection;
+    if (conn === undefined) {
       throw new Error('VPN connection object is not initialized');
     }
     // A reconnect re-runs the whole builder sequence; destroy the TUN left
     // over from the previous session before creating the new one.
     try {
-      await this.connection.destroy();
+      await conn.destroy();
     } catch (e) {
       // no TUN exists on the first connect
     }
-    let fd = await this.connection.create(config);
+    let fd = await conn.create(config);
     if (this.stopped) {
+      // stop() ran while create() was pending; its destroy() found no TUN and
+      // this one must not leak (status bar VPN icon would outlive the tunnel).
       try {
-        await this.connection.destroy();
+        await conn.destroy();
       } catch (e) {
       }
       ovpnexec.resolveTunEstablish(-1);

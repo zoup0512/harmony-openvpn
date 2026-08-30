@@ -71,6 +71,13 @@ export struct FaqContent {
         .onClick(() => {
           this.toggle(index as number);
         })
+
+        if ((index as number) < FAQ_ITEMS.length - 1) {
+          Divider()
+            .color(Theme.DIVIDER)
+            .strokeWidth(1)
+            .margin({ left: 10, right: 10 })
+        }
       }, (item: FaqEntry) => item.titleKey)
     }
     .width('100%')

@@ -157,6 +157,7 @@ struct ProfileEdit {
       message: R.s('remove_vpn_query', this.profile.getName()),
       primaryButton: {
         value: R.s('no'),
+        fontColor: Theme.PRIMARY,
         action: () => {
         }
       },

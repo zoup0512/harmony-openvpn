@@ -18,4 +18,11 @@ export class Theme {
   static readonly DIVIDER: string = '#1F000000';
   static readonly WHITE: string = '#FFFFFF';
   static readonly LOGO_BG: string = '#F2F2F2';
+  static readonly DIALOG_BUTTON_HEIGHT: number = 40;
+  static readonly DIALOG_BUTTON_RADIUS: number = 20;
+  static readonly DIALOG_BUTTON_MIN_WIDTH: number = 88;
+  static readonly DIALOG_BUTTON_GAP: number = 8;
+  static readonly DIALOG_BUTTON_DISABLED_BG: string = '#E2E3E8';
+  static readonly DIALOG_BUTTON_DISABLED_TEXT: string = '#6E707A';
+  static readonly DIALOG_BUTTON_DISABLED_BORDER: string = '#C9CBD3';
 }

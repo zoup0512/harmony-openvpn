@@ -180,6 +180,7 @@ export struct ProfilesTab {
   private confirmDisconnect(): void {
     let primBtn: AlertDialogButtonBaseOptions = {
       value: R.s('cancel'),
+      fontColor: Theme.TEXT_SECONDARY,
       action: () => {
         this.reload();
       }
@@ -251,6 +252,7 @@ export struct ProfilesTab {
     if (checkResult !== ProfileError.NO_ERROR) {
       let confBtn: AlertDialogButtonBaseOptions = {
         value: R.s('ok'),
+        fontColor: Theme.PRIMARY,
         action: () => {
           this.reload();
         }
@@ -271,6 +273,7 @@ export struct ProfilesTab {
     if (missing !== '') {
       let confBtn: AlertDialogButtonBaseOptions = {
         value: R.s('ok'),
+        fontColor: Theme.PRIMARY,
         action: () => {
           this.editVPN(p.getUUID());
         }

@@ -153,17 +153,34 @@ export struct ImportSourceDialog {
         Blank()
         Button(R.s('cancel'))
           .fontSize(14)
-          .backgroundColor(0)
+          .fontWeight(FontWeight.Medium)
+          .height(Theme.DIALOG_BUTTON_HEIGHT)
+          .constraintSize({ minWidth: Theme.DIALOG_BUTTON_MIN_WIDTH })
+          .padding({ left: 16, right: 16 })
+          .backgroundColor(Theme.CARD_BG)
           .fontColor(Theme.PRIMARY)
+          .border({ width: 1, color: Theme.PRIMARY })
+          .borderRadius(Theme.DIALOG_BUTTON_RADIUS)
           .onClick(() => {
             this.controller?.close();
           })
         Button(R.s('continue_action'))
           .fontSize(14)
           .fontWeight(FontWeight.Medium)
-          .backgroundColor(0)
-          .fontColor(this.selectedSource === SOURCE_NONE ? Theme.TEXT_DISABLED : Theme.PRIMARY)
-          .margin({ left: 8 })
+          .height(Theme.DIALOG_BUTTON_HEIGHT)
+          .constraintSize({ minWidth: Theme.DIALOG_BUTTON_MIN_WIDTH })
+          .padding({ left: 16, right: 16 })
+          .backgroundColor(this.selectedSource === SOURCE_NONE ?
+          Theme.DIALOG_BUTTON_DISABLED_BG : Theme.PRIMARY)
+          .fontColor(this.selectedSource === SOURCE_NONE ?
+          Theme.DIALOG_BUTTON_DISABLED_TEXT : Theme.WHITE)
+          .border({
+            width: 1,
+            color: this.selectedSource === SOURCE_NONE ?
+            Theme.DIALOG_BUTTON_DISABLED_BORDER : Theme.PRIMARY
+          })
+          .borderRadius(Theme.DIALOG_BUTTON_RADIUS)
+          .margin({ left: Theme.DIALOG_BUTTON_GAP })
           .enabled(this.selectedSource !== SOURCE_NONE)
           .onClick(() => {
             this.confirmSelection();

@@ -70,8 +70,14 @@ export struct InputDialog {
         if (this.model.neutralText !== '') {
           Button(this.model.neutralText)
             .fontSize(14)
-            .backgroundColor(0)
+            .fontWeight(FontWeight.Medium)
+            .height(Theme.DIALOG_BUTTON_HEIGHT)
+            .constraintSize({ minWidth: Theme.DIALOG_BUTTON_MIN_WIDTH })
+            .padding({ left: 16, right: 16 })
+            .backgroundColor(Theme.CARD_BG)
             .fontColor(Theme.PRIMARY)
+            .border({ width: 1, color: Theme.PRIMARY })
+            .borderRadius(Theme.DIALOG_BUTTON_RADIUS)
             .onClick(() => {
               this.controller?.close();
               this.model.onNeutral();
@@ -80,17 +86,28 @@ export struct InputDialog {
         Blank()
         Button(this.model.cancelText)
           .fontSize(14)
-          .backgroundColor(0)
+          .fontWeight(FontWeight.Medium)
+          .height(Theme.DIALOG_BUTTON_HEIGHT)
+          .constraintSize({ minWidth: Theme.DIALOG_BUTTON_MIN_WIDTH })
+          .padding({ left: 16, right: 16 })
+          .backgroundColor(Theme.CARD_BG)
           .fontColor(Theme.PRIMARY)
+          .border({ width: 1, color: Theme.PRIMARY })
+          .borderRadius(Theme.DIALOG_BUTTON_RADIUS)
           .onClick(() => {
             this.controller?.close();
             this.model.onCancel();
           })
         Button(this.model.okText)
           .fontSize(14)
-          .backgroundColor(0)
-          .fontColor(Theme.PRIMARY)
-          .margin({ left: 8 })
+          .fontWeight(FontWeight.Medium)
+          .height(Theme.DIALOG_BUTTON_HEIGHT)
+          .constraintSize({ minWidth: Theme.DIALOG_BUTTON_MIN_WIDTH })
+          .padding({ left: 16, right: 16 })
+          .backgroundColor(Theme.PRIMARY)
+          .fontColor(Theme.WHITE)
+          .borderRadius(Theme.DIALOG_BUTTON_RADIUS)
+          .margin({ left: Theme.DIALOG_BUTTON_GAP })
           .onClick(() => {
             if (!this.model.validate(this.text)) {
               return;

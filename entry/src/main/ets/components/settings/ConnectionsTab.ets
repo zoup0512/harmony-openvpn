@@ -39,6 +39,7 @@ export struct ConnectionsTab {
   private removeRemote(index: number): void {
     let primBtn: AlertDialogButtonBaseOptions = {
       value: R.s('keep'),
+      fontColor: Theme.PRIMARY,
       action: () => {
       }
     };

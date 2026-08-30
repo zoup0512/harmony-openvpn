@@ -5,7 +5,6 @@
     "pages/VPNPreferences",
     "pages/LogWindow",
     "pages/ConfigConverter",
-    "pages/About",
-    "pages/TrafficStats"
+    "pages/About"
   ]
 }

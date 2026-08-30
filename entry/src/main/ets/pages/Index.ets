@@ -305,6 +305,7 @@ struct Index {
           .onClick(() => {
             this.currentIndex = i;
           })
+          .layoutWeight(1)
         }, (i: number) => `${i}`)
       }
       .width('100%')

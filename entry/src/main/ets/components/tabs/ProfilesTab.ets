@@ -10,7 +10,6 @@ import { GP } from '../../common/GP';
 import { VpnProfile, ProfileError } from '../../core/VpnProfile';
 import { ProfileManager } from '../../core/ProfileManager';
 import { VpnStatus } from '../../core/VpnStatus';
-import { ConnectionStatus } from '../../core/LogItem';
 import { profileErrorText } from '../../common/ProfileChecks';
 import { VpnController } from '../../vpn/VpnController';
 import { CredentialsDialog, CredentialsDialogModel } from '../CredentialsDialog';
@@ -206,10 +205,11 @@ export struct ProfilesTab {
   }
 
   private requestCredentials(p: VpnProfile): void {
-    VpnStatus.setConnectedVPNProfile(p.getUUID());
-    VpnStatus.updateStateString('USER_INPUT', R.s('state_waiting_for_user_input'),
-      ConnectionStatus.LEVEL_WAITING_FOR_USER_INPUT);
-    this.refreshStatus();
+    // No start request exists yet at this point, so the global connection
+    // status must stay untouched: marking USER_INPUT here and only rolling it
+    // back on submit left the switch stuck "on" with a waiting-for-input
+    // label after Cancel, and clobbered the status of an already-connected
+    // profile while the dialog was open.
     this.credentialsModel.title = R.s('credentials_title');
     this.credentialsModel.message = R.s('credentials_message');
     this.credentialsModel.username = p.mUsername === undefined ? '' : p.mUsername;
@@ -228,6 +228,9 @@ export struct ProfilesTab {
       return true;
     };
     this.credentialsModel.onCancel = () => {
+      // Rebuild the list so the toggled switch snaps back to isOn=false; a
+      // Toggle only re-reads isOn when its ForEach item is recreated.
+      this.statusRenderTick++;
       this.refreshStatus();
       this.reload();
     };
@@ -238,6 +241,7 @@ export struct ProfilesTab {
     ProfileManager.updateLRU(p);
     VpnController.startVpn(p.getUUID(), 'main profile list', '', '', '', username, password).catch((e: Error) => {
       promptAction.showToast({ message: `${e.message}` });
+      this.statusRenderTick++;
       this.reload();
     });
   }

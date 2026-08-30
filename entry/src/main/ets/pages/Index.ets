@@ -9,6 +9,7 @@ import { R } from '../common/Res';
 import { GP } from '../common/GP';
 import { FileUtil } from '../common/FileUtil';
 import { ImportASDialog } from '../components/dialogs/ImportASDialog';
+import { ImportSourceDialog } from '../components/dialogs/ImportSourceDialog';
 import { ProfilesTab } from '../components/tabs/ProfilesTab';
 import { GraphTab } from '../components/tabs/GraphTab';
 import { SettingsTab } from '../components/tabs/SettingsTab';
@@ -43,6 +44,19 @@ struct Index {
     builder: ImportASDialog({}),
     autoCancel: true,
     customStyle: true
+  });
+  private importSourceDialogController: CustomDialogController = new CustomDialogController({
+    builder: ImportSourceDialog({
+      onLocal: () => {
+        this.importConfigFile();
+      },
+      onCloud: () => {
+        this.asDialogController.open();
+      }
+    }),
+    autoCancel: true,
+    customStyle: true,
+    alignment: DialogAlignment.Center
   });
 
   aboutToAppear(): void {
@@ -220,33 +234,7 @@ struct Index {
   }
 
   private showImportChoices(): void {
-    let sheets: Array<SheetInfo> = [
-      {
-        title: R.s('import_from_local'),
-        action: () => {
-          this.importConfigFile();
-        }
-      },
-      {
-        title: R.s('import_from_cloud'),
-        action: () => {
-          this.asDialogController.open();
-        }
-      }
-    ];
-    let sheetOptions: ActionSheetOptions = {
-      title: R.s('import_config'),
-      message: '',
-      sheets: sheets,
-      confirm: {
-        value: R.s('cancel'),
-        action: () => {
-        }
-      },
-      cancel: () => {
-      }
-    };
-    ActionSheet.show(sheetOptions);
+    this.importSourceDialogController.open();
   }
 
   private tabTitle(i: number): string {

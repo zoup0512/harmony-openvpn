@@ -1193,6 +1193,22 @@
       "value": "Cloud import"
     },
     {
+      "name": "import_from_local_summary",
+      "value": "Choose an .ovpn or .conf file"
+    },
+    {
+      "name": "import_from_cloud_summary",
+      "value": "Get a profile from a server or URL"
+    },
+    {
+      "name": "import_source_hint",
+      "value": "Choose where to import your VPN profile from"
+    },
+    {
+      "name": "continue_action",
+      "value": "Continue"
+    },
+    {
       "name": "import_from_as",
       "value": "Import from Access Server/URL"
     },

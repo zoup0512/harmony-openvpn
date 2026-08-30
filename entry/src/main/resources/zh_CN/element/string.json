@@ -1193,6 +1193,22 @@
       "value": "云端导入"
     },
     {
+      "name": "import_from_local_summary",
+      "value": "选择 .ovpn 或 .conf 配置文件"
+    },
+    {
+      "name": "import_from_cloud_summary",
+      "value": "从服务器或 URL 获取配置"
+    },
+    {
+      "name": "import_source_hint",
+      "value": "请选择 VPN 配置的导入来源"
+    },
+    {
+      "name": "continue_action",
+      "value": "继续"
+    },
+    {
       "name": "import_from_as",
       "value": "从服务器/URL导入"
     },

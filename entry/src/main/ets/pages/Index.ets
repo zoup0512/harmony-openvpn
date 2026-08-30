@@ -1,6 +1,6 @@
 /**
  * Main page — replicates MainActivity: toolbar + ViewPager with the tabs
- * Profiles / Graph / Settings / FAQ / About.
+ * Profiles / Graph / Settings. FAQ content is available from About.
  */
 
 import { router, promptAction } from '@kit.ArkUI';
@@ -12,7 +12,6 @@ import { ImportASDialog } from '../components/dialogs/ImportASDialog';
 import { ProfilesTab } from '../components/tabs/ProfilesTab';
 import { GraphTab } from '../components/tabs/GraphTab';
 import { SettingsTab } from '../components/tabs/SettingsTab';
-import { FaqTab } from '../components/tabs/FaqTab';
 import { InputDialog, InputDialogModel } from '../components/InputDialog';
 import { CredentialsDialog, CredentialsDialogModel } from '../components/CredentialsDialog';
 import { VpnController, PendingAuthChallenge } from '../vpn/VpnController';
@@ -228,8 +227,6 @@ struct Index {
         return R.s('graph');
       case 2:
         return R.s('generalsettings');
-      case 3:
-        return R.s('faq');
       default:
         return '';
     }
@@ -291,7 +288,7 @@ struct Index {
 
       // ---- Tab bar ----
       Row() {
-        ForEach([0, 1, 2, 3], (i: number) => {
+        ForEach([0, 1, 2], (i: number) => {
           Column() {
             Text(this.tabTitle(i))
               .fontSize(14)
@@ -331,11 +328,6 @@ struct Index {
 
         TabContent() {
           SettingsTab()
-        }
-        .tabBar('')
-
-        TabContent() {
-          FaqTab()
         }
         .tabBar('')
       }

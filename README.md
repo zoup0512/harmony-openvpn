@@ -34,7 +34,7 @@ export DEVECO_SDK_HOME="C:\Program Files\Huawei\DevEco Studio\sdk"
 - `core/TrafficHistory.ets`：秒/分/时三级流量采样（图表数据源）
 
 **界面（对照原版布局/菜单/交互复刻）**
-- 主界面五个 Tab：Profiles（配置列表：连接/断开、铅笔编辑、默认 VPN 与红色警告副标题、空列表引导、通知权限提示）/ Graph（三张流量图：红=下行 蓝=上行、对数刻度开关）/ Settings（应用行为 + VPN 行为全部设置项）/ FAQ（15 条可展开卡片）/ About
+- 主界面三个 Tab：Profiles（配置列表：连接/断开、铅笔编辑、默认 VPN 与红色警告副标题、空列表引导、通知权限提示）/ Graph（三张流量图：红=下行 蓝=上行、对数刻度开关）/ Settings（应用行为 + VPN 行为全部设置项）；About 页面包含 15 条可展开 FAQ
 - VPNPreferences 编辑页八个 Tab：Basic（认证类型驱动的动态区块）/ Server List（服务器卡片+随机开关+FAB）/ IP and DNS / Routing / Authentication-Encryption / Advanced / Allowed Apps / Generated Config（实时生成+复制）；顶栏删除/复制
 - 导入：工具栏 添加(+)/导入(.ovpn)/排序/URL导入（AS/URL+Basic Auth）→ ConfigConverter（解析、重名处理、兼容模式、TLS profile、设为默认、缺失文件手动补选、导入日志）
 - 日志窗口：日志级别滑条(1-4)、时间戳格式（无/短/ISO）、连接时清空、长按复制单条、整份日志复制、断开、编辑 VPN；底部上传/下载/状态栏

@@ -7,6 +7,7 @@ import fileUri from '@ohos.file.fileuri';
 import { App } from '../common/App';
 import { Theme } from '../common/Theme';
 import { R } from '../common/Res';
+import { FaqContent } from '../components/tabs/FaqContent';
 
 const DONATE_IMAGE_RESOURCE: string = 'donate_wx';
 const ABOUT_BACKGROUND: string = '#F5F7FB';
@@ -136,6 +137,24 @@ struct About {
   }
 
   @Builder
+  FaqCard() {
+    Column() {
+      Text(R.s('faq'))
+        .fontSize(28)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(ABOUT_TEXT_PRIMARY)
+        .width('100%')
+        .margin({ bottom: 8 })
+
+      FaqContent()
+    }
+    .width('100%')
+    .padding({ left: 12, right: 12, top: 24, bottom: 14 })
+    .backgroundColor(ABOUT_CARD_BACKGROUND)
+    .borderRadius(24)
+  }
+
+  @Builder
   PaymentCard() {
     Column() {
       Text(R.s('about_donate_title'))
@@ -246,6 +265,7 @@ struct About {
       Scroll() {
         Column({ space: 12 }) {
           this.UsageCard()
+          this.FaqCard()
           this.PaymentCard()
           this.FeedbackCard()
         }

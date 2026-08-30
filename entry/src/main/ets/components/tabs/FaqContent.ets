@@ -52,21 +52,20 @@ export struct FaqContent {
       ForEach(FAQ_ITEMS, (item: FaqEntry, index?: number) => {
         Column() {
           Text(R.s(item.titleKey))
-            .fontSize(18)
+            .fontSize(15)
+            .fontWeight(FontWeight.Medium)
             .fontColor(Theme.TEXT_PRIMARY)
             .width('100%')
-            .padding({ left: 10, right: 10, top: 10, bottom: 5 })
+            .padding({ left: 4, right: 4, top: 12, bottom: 12 })
           if (this.isExpanded(index as number)) {
             Text(R.s(item.bodyKey))
-              .fontSize(14)
+              .fontSize(13)
               .fontColor(Theme.TEXT_SECONDARY)
+              .lineHeight(21)
               .width('100%')
-              .padding({ left: 10, right: 10, bottom: 10 })
+              .padding({ left: 4, right: 4, bottom: 12 })
           }
         }
-        .borderRadius(10)
-        .margin(10)
-        .backgroundColor(Theme.CARD_BG)
         .width('100%')
         .onClick(() => {
           this.toggle(index as number);
@@ -75,8 +74,8 @@ export struct FaqContent {
         if ((index as number) < FAQ_ITEMS.length - 1) {
           Divider()
             .color(Theme.DIVIDER)
-            .strokeWidth(1)
-            .margin({ left: 10, right: 10 })
+            .strokeWidth(0.5)
+            .margin({ left: 4, right: 4 })
         }
       }, (item: FaqEntry) => item.titleKey)
     }

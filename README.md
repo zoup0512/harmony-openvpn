@@ -19,6 +19,23 @@ export DEVECO_SDK_HOME="C:\Program Files\Huawei\DevEco Studio\sdk"
 
 产物：`entry/build/default/outputs/default/entry-default-unsigned.hap`（未签名，需在 DevEco Studio 中配置签名后安装运行；或直接用 DevEco Studio 打开工程运行）。
 
+## 核心引擎与架构（OpenVPN3）
+
+VPN 数据面使用**官方 OpenVPN3 C++ 客户端核心**，编译为 arm64 动态库 `libovpnexec.so` 经 NAPI 供 ArkTS 调用：
+
+- **第三方库**（`native/third_party/` git 子模块）：`openvpn3`（固定 `release/3.10` 分支）、OpenSSL 3.4.1（TLS/加密后端）、asio 1.32.0（异步网络 I/O）、lz4（压缩）、fmt
+- **调用链**：ArkTS `vpnservice/OvpnEngine.ets` → NAPI 封装层 `entry/src/main/cpp/ovpn_napi.cpp` → openvpn3 C++ 核心
+- **职责划分**：openvpn3 核心负责连接建立（TLS 握手、认证挑战含 CR_TEXT/OTP 交互、数据通道加解密）；核心通过 `tun_builder_*` 回调向 `VpnServiceAbility`（VpnExtensionAbility）提供路由/DNS/TUN 参数，由鸿蒙 VPN Extension 建立虚拟网卡
+- **统计**：隧道建立后引擎每秒经 `getTunStats()` 读取 TUN 收发字节，回传 ArkTS 层（`VpnStatus.updateByteCount` → `VpnTrafficStore` 按配置/按日持久化）
+- **协议兼容性**："OpenVPN 3" 是实现而非新线缆协议——线上协议与 OpenVPN 2.x 服务端完全兼容（UDP/TCP 传输、TLS 握手、NCP 密码套件协商如 AES-GCM），标准 `.ovpn` 配置文件通用，可直连常见 OpenVPN 2.x 服务器（如 openvpn 官方镜像容器）
+
+Native 构建前置（改动 `native/` 下代码时需要，纯 ArkTS 改动可跳过）：
+
+```bash
+git submodule update --init
+bash native/scripts/build-openssl.sh   # 交叉编译 OpenSSL 到 native/build/openssl-ohos/install
+```
+
 ## 已实现（对照 Android 版）
 
 **核心数据层（忠实移植）**
@@ -34,7 +51,7 @@ export DEVECO_SDK_HOME="C:\Program Files\Huawei\DevEco Studio\sdk"
 - `core/TrafficHistory.ets`：秒/分/时三级流量采样（图表数据源）
 
 **界面（对照原版布局/菜单/交互复刻）**
-- 主界面三个 Tab：Profiles（配置列表：连接/断开、铅笔编辑、默认 VPN 与红色警告副标题、空列表引导、通知权限提示）/ Graph（三张流量图：红=下行 蓝=上行、对数刻度开关）/ Settings（应用行为 + VPN 行为全部设置项）；About 页面包含 15 条可展开 FAQ
+- 主界面三个 Tab：Profiles（配置列表：连接/断开、铅笔编辑、默认 VPN 与红色警告副标题、空列表引导、通知权限提示）/ Graph（实时速率行 + 每个 VPN 配置的流量统计卡片：今日/本月用量、最近 7 天逐日明细，下载红/上传蓝）/ Settings（应用行为 + VPN 行为全部设置项）；About 页面包含 15 条可展开 FAQ
 - VPNPreferences 编辑页八个 Tab：Basic（认证类型驱动的动态区块）/ Server List（服务器卡片+随机开关+FAB）/ IP and DNS / Routing / Authentication-Encryption / Advanced / Allowed Apps / Generated Config（实时生成+复制）；顶栏删除/复制
 - 导入：工具栏 添加(+)/导入(.ovpn)/排序/URL导入（AS/URL+Basic Auth）→ ConfigConverter（解析、重名处理、兼容模式、TLS profile、设为默认、缺失文件手动补选、导入日志）
 - 日志窗口：日志级别滑条(1-4)、时间戳格式（无/短/ISO）、连接时清空、长按复制单条、整份日志复制、断开、编辑 VPN；底部上传/下载/状态栏
@@ -45,7 +62,7 @@ export DEVECO_SDK_HOME="C:\Program Files\Huawei\DevEco Studio\sdk"
 
 ## 已知限制（与 Android 版差异）
 
-- **原生 OpenVPN 引擎未捆绑**：隧道建立需要 native 库（openvpn/libovpnexec.so 或 openvpn3），本工程为纯 ArkTS。连接尝试会执行真实的 TCP 可达性探测并在日志中明确报告“native 引擎不可用”。配置管理、导入、解析、生成等全部功能可正常使用；接入引擎时无需改动 UI。
+- ~~原生 OpenVPN 引擎未捆绑~~（已解决）：native 层现已捆绑官方 OpenVPN3 核心（见「核心引擎与架构」），可真实建立隧道；构建时需先初始化子模块并交叉编译 OpenSSL。
 - 系统 KeyChain 证书（Android Certificate/外部认证器类型）：HarmonyOS 无对应公开 API，界面保留但提示不可用（建议使用证书/PKCS12 文件认证）。
 - 分应用 VPN：三方应用无法枚举已装应用，改为手动输入包名列表（存储结构与原版一致，并映射到 `trustedApplications`/`blockedApplications`）。
 - 开机自启（Keep VPN connected）：保留设置项；HarmonyOS 三方应用无开机广播。

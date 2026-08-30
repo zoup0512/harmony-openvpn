@@ -17,12 +17,8 @@
       "value": "OpenVPN for Harmony"
     },
     {
-      "name": "vpn_list_title",
-      "value": "Profiles"
-    },
-    {
       "name": "graph",
-      "value": "Graph"
+      "value": "Traffic Stats"
     },
     {
       "name": "generalsettings",
@@ -67,14 +63,6 @@
     {
       "name": "clear",
       "value": "Clear"
-    },
-    {
-      "name": "sorted_az",
-      "value": "Profiles sorted by name"
-    },
-    {
-      "name": "sorted_lru",
-      "value": "Profiles sorted by last recently used"
     },
     {
       "name": "menu_add_profile",

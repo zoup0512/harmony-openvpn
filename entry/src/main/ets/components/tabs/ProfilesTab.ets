@@ -6,7 +6,6 @@
 import { router, promptAction } from '@kit.ArkUI';
 import { Theme } from '../../common/Theme';
 import { R } from '../../common/Res';
-import { GP } from '../../common/GP';
 import { VpnProfile, ProfileError } from '../../core/VpnProfile';
 import { ProfileManager } from '../../core/ProfileManager';
 import { VpnStatus } from '../../core/VpnStatus';
@@ -23,7 +22,6 @@ const PROFILES_NOTICE_BACKGROUND: string = '#1AFFA726';
 
 @Component
 export struct ProfilesTab {
-  @Prop @Watch('onSortTick') sortTick: number = 0;
   @State profiles: VpnProfile[] = [];
   @State connectionStatusLabel: string = '';
   @State activeProfileUuid: string = '';
@@ -39,10 +37,6 @@ export struct ProfilesTab {
     autoCancel: false,
     customStyle: true
   });
-
-  onSortTick(): void {
-    this.reload();
-  }
 
   aboutToAppear(): void {
     this.refreshStatus();
@@ -132,17 +126,7 @@ export struct ProfilesTab {
 
   private reload(): void {
     let list = ProfileManager.getProfiles();
-    let byLru = GP.getBool('sortProfilesByLRU', false);
-    if (byLru) {
-      list.sort((a: VpnProfile, b: VpnProfile) => {
-        if (b.mLastUsed !== a.mLastUsed) {
-          return b.mLastUsed - a.mLastUsed;
-        }
-        return a.getName().localeCompare(b.getName());
-      });
-    } else {
-      list.sort((a: VpnProfile, b: VpnProfile) => a.getName().localeCompare(b.getName()));
-    }
+    list.sort((a: VpnProfile, b: VpnProfile) => a.getName().localeCompare(b.getName()));
     this.profiles = list;
   }
 

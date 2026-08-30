@@ -1,18 +1,15 @@
 /**
- * Main page — replicates MainActivity: toolbar + ViewPager with the tabs
- * Profiles / Graph / Settings. FAQ content is available from About.
+ * Main page — replicates MainActivity: toolbar + the VPN profile list.
+ * Traffic statistics and general settings open as pages from the toolbar.
  */
 
 import { router, promptAction } from '@kit.ArkUI';
 import { Theme } from '../common/Theme';
 import { R } from '../common/Res';
-import { GP } from '../common/GP';
 import { FileUtil } from '../common/FileUtil';
 import { ImportASDialog } from '../components/dialogs/ImportASDialog';
 import { ImportSourceDialog } from '../components/dialogs/ImportSourceDialog';
 import { ProfilesTab } from '../components/tabs/ProfilesTab';
-import { GraphTab } from '../components/tabs/GraphTab';
-import { SettingsTab } from '../components/tabs/SettingsTab';
 import { InputDialog, InputDialogModel } from '../components/InputDialog';
 import { CredentialsDialog, CredentialsDialogModel } from '../components/CredentialsDialog';
 import { VpnController, PendingAuthChallenge } from '../vpn/VpnController';
@@ -22,8 +19,6 @@ import { ConnectionStatus, LogLevel } from '../core/LogItem';
 @Entry
 @Component
 struct Index {
-  @State currentIndex: number = 0;
-  @State sortTick: number = 0;
   private authTimerId: number = -1;
   private activeAuthExpiresAt: number = 0;
   private authDialogOpen: boolean = false;
@@ -209,15 +204,6 @@ struct Index {
     });
   }
 
-  private changeSorting(): void {
-    let byLru = !GP.getBool('sortProfilesByLRU', false);
-    GP.setBool('sortProfilesByLRU', byLru);
-    promptAction.showToast({
-      message: byLru ? R.s('sorted_lru') : R.s('sorted_az')
-    });
-    this.sortTick++;
-  }
-
   private importConfigFile(): void {
     FileUtil.pickAndRead(['.ovpn', '.conf']).then((f) => {
       let params: Record<string, Object> = {
@@ -237,19 +223,6 @@ struct Index {
     this.importSourceDialogController.open();
   }
 
-  private tabTitle(i: number): string {
-    switch (i) {
-      case 0:
-        return R.s('vpn_list_title');
-      case 1:
-        return R.s('graph');
-      case 2:
-        return R.s('generalsettings');
-      default:
-        return '';
-    }
-  }
-
   build() {
     Column() {
       // ---- Toolbar (replicates ActionBar + fragment menus) ----
@@ -262,20 +235,26 @@ struct Index {
           .layoutWeight(1)
           .padding({ left: 16 })
 
-        if (this.currentIndex === 0) {
-          Image($r('app.media.ic_import'))
-            .width(24).height(24).fillColor(Color.White)
-            .margin({ left: 16 })
-            .onClick(() => {
-              this.showImportChoices();
-            })
-          Image($r('app.media.ic_sort'))
-            .width(24).height(24).fillColor(Color.White)
-            .margin({ left: 16 })
-            .onClick(() => {
-              this.changeSorting();
-            })
-        }
+        Image($r('app.media.ic_import'))
+          .width(24).height(24).fillColor(Color.White)
+          .margin({ left: 16 })
+          .onClick(() => {
+            this.showImportChoices();
+          })
+
+        Image($r('app.media.ic_settings'))
+          .width(24).height(24).fillColor(Color.White)
+          .margin({ left: 16 })
+          .onClick(() => {
+            router.pushUrl({ url: 'pages/Settings' });
+          })
+
+        Image($r('app.media.ic_chart'))
+          .width(24).height(24).fillColor(Color.White)
+          .margin({ left: 16 })
+          .onClick(() => {
+            router.pushUrl({ url: 'pages/TrafficStats' });
+          })
 
         Image($r('app.media.ic_receipt'))
           .width(24).height(24).fillColor(Color.White)
@@ -298,57 +277,13 @@ struct Index {
       .backgroundColor(Theme.PRIMARY)
       .alignItems(VerticalAlign.Center)
 
-      // ---- Tab bar ----
-      Row() {
-        ForEach([0, 1, 2], (i: number) => {
-          Column() {
-            Text(this.tabTitle(i))
-              .fontSize(14)
-              .fontColor(Color.White)
-              .maxLines(1)
-              .padding({ left: 12, right: 12, top: 8, bottom: 8 })
-            Divider()
-              .color(this.currentIndex === i ? Theme.ACCENT : '#00000000')
-              .strokeWidth(4)
-          }
-          .onClick(() => {
-            this.currentIndex = i;
-          })
-          .layoutWeight(1)
-        }, (i: number) => `${i}`)
-      }
-      .width('100%')
-      .backgroundColor(Theme.PRIMARY)
-      .alignItems(VerticalAlign.Bottom)
-
       // ---- Content ----
-      Tabs({ index: this.currentIndex, barPosition: BarPosition.Start }) {
-        TabContent() {
-          ProfilesTab({
-            sortTick: this.sortTick,
-            onImportProfile: () => {
-              this.importConfigFile();
-            }
-          })
+      ProfilesTab({
+        onImportProfile: () => {
+          this.importConfigFile();
         }
-        .tabBar('')
-
-        TabContent() {
-          GraphTab()
-        }
-        .tabBar('')
-
-        TabContent() {
-          SettingsTab()
-        }
-        .tabBar('')
-      }
-      .scrollable(true)
-      .barHeight(0)
-      .onChange((index: number) => {
-        this.currentIndex = index;
       })
-      .layoutWeight(1)
+        .layoutWeight(1)
     }
     .width('100%')
     .height('100%')

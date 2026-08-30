@@ -17,12 +17,8 @@
       "value": "OpenVPN"
     },
     {
-      "name": "vpn_list_title",
-      "value": "VPN 列表"
-    },
-    {
       "name": "graph",
-      "value": "图表"
+      "value": "流量统计"
     },
     {
       "name": "generalsettings",
@@ -67,14 +63,6 @@
     {
       "name": "clear",
       "value": "清除"
-    },
-    {
-      "name": "sorted_az",
-      "value": "配置文件按名称排序"
-    },
-    {
-      "name": "sorted_lru",
-      "value": "配置文件按最近使用排序"
     },
     {
       "name": "menu_add_profile",

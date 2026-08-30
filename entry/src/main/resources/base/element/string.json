@@ -1049,6 +1049,34 @@
       "value": "Not enough data"
     },
     {
+      "name": "traffic_stats_title",
+      "value": "VPN traffic statistics"
+    },
+    {
+      "name": "traffic_stats_entry_summary",
+      "value": "View today's and this month's usage for every VPN profile"
+    },
+    {
+      "name": "traffic_stats_summary",
+      "value": "Traffic is measured at the VPN tunnel and grouped by the device's local date. Download is shown in red and upload in blue."
+    },
+    {
+      "name": "traffic_today",
+      "value": "Today"
+    },
+    {
+      "name": "traffic_this_month",
+      "value": "This month"
+    },
+    {
+      "name": "traffic_last_7_days",
+      "value": "Last 7 days"
+    },
+    {
+      "name": "traffic_no_profiles",
+      "value": "Add a VPN profile to start collecting traffic statistics."
+    },
+    {
       "name": "app_behaviour",
       "value": "Application behaviour"
     },

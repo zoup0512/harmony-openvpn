@@ -1,6 +1,6 @@
 import vpnExtension from '@ohos.net.vpnExtension';
 import * as ovpnexec from 'libovpnexec.so';
-import type { OvpnNativeEvent, OvpnStartResult } from 'libovpnexec.so';
+import type { OvpnNativeEvent, OvpnStartResult, OvpnTunStats } from 'libovpnexec.so';
 import { AuthChallengeManager, parseAccessServerCrv1 } from '../core/AuthChallenge';
 import { VpnController, PendingAuthChallenge } from '../vpn/VpnController';
 import { VpnStatus } from '../core/VpnStatus';
@@ -63,6 +63,7 @@ export class OvpnEngine {
   private preserveChallengeOnDone: boolean = false;
   private vpnContext: vpnExtension.VpnExtensionContext;
   private onDone?: () => void;
+  private statsTimer: number = -1;
 
   constructor(context: vpnExtension.VpnExtensionContext, onDone?: () => void) {
     this.vpnContext = context;
@@ -85,6 +86,7 @@ export class OvpnEngine {
         let finishedInfo: string = this.preserveChallengeOnDone ? 'authentication challenge pending' : event.info;
         VpnStatus.logMessage(event.error ? LogLevel.ERROR : LogLevel.INFO,
           `[OpenVPN3] finished: ${event.name} ${finishedInfo}`);
+        this.stopStatsPolling();
         if (this.preserveChallengeOnDone) {
           this.preserveChallengeOnDone = false;
           return;
@@ -108,6 +110,7 @@ export class OvpnEngine {
     if (!result.ok) {
       throw new Error(result.error);
     }
+    this.startStatsPolling();
   }
 
   respondCrText(response: string): void {
@@ -125,6 +128,7 @@ export class OvpnEngine {
   async stop(): Promise<void> {
     this.stopped = true;
     this.preserveChallengeOnDone = false;
+    this.stopStatsPolling();
     ovpnexec.stopTunnel();
     AuthChallengeManager.clear();
     if (this.connection !== undefined) {
@@ -134,6 +138,30 @@ export class OvpnEngine {
         console.warn('[OpenVPN3] destroy TUN failed');
       }
       this.connection = undefined;
+    }
+  }
+
+  private startStatsPolling(): void {
+    this.stopStatsPolling();
+    this.statsTimer = setInterval(() => {
+      if (this.stopped) {
+        return;
+      }
+      try {
+        let stats: OvpnTunStats = ovpnexec.getTunStats();
+        if (stats.ok) {
+          VpnStatus.updateByteCount(stats.bytesIn, stats.bytesOut);
+        }
+      } catch (e) {
+        VpnStatus.logMessage(LogLevel.DEBUG, '[OpenVPN3] failed to read TUN statistics');
+      }
+    }, 1000) as number;
+  }
+
+  private stopStatsPolling(): void {
+    if (this.statsTimer !== -1) {
+      clearInterval(this.statsTimer);
+      this.statsTimer = -1;
     }
   }
 

@@ -10,6 +10,8 @@ import { VpnStatus } from '../../core/VpnStatus';
 import { TrafficHistory, TrafficDatapoint, RatePoint } from '../../core/TrafficHistory';
 import { Format } from '../../common/Format';
 import { TrafficChart } from '../TrafficChart';
+import { router } from '@kit.ArkUI';
+import { TapRow } from '../PrefRows';
 
 @Component
 export struct GraphTab {
@@ -56,6 +58,14 @@ export struct GraphTab {
   build() {
     Scroll() {
       Column() {
+        TapRow({
+          title: R.s('traffic_stats_title'),
+          summary: R.s('traffic_stats_entry_summary'),
+          onRowClick: () => {
+            router.pushUrl({ url: 'pages/TrafficStats' });
+          }
+        })
+
         Text(this.statusLine)
           .fontSize(14)
           .fontColor(Theme.TEXT_PRIMARY)

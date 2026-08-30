@@ -18,6 +18,7 @@ import { App } from '../common/App';
 import { ProfileManager } from '../core/ProfileManager';
 import { VpnProfile, ProfileError } from '../core/VpnProfile';
 import { VpnStatus } from '../core/VpnStatus';
+import { VpnTrafficStore } from '../core/VpnTrafficStore';
 import { LogItem, LogLevel, ConnectionStatus } from '../core/LogItem';
 import { generateConfigFile, GenEnvInfo } from '../core/ConfigGenerator';
 import { Connection } from '../core/Connection';
@@ -63,6 +64,7 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
     super.onCreate(want);
     App.init(this.context);
     VpnStatus.setPersistenceContext(this.context, true);
+    VpnTrafficStore.setPersistenceContext(this.context, true);
     VpnStatus.logMessage(LogLevel.INFO, 'VpnServiceAbility onCreate received.');
     VpnStatus.logMessage(LogLevel.DEBUG, `onCreate want: ${this.describeWant(want)}`);
     this.installStatusListener();
@@ -75,6 +77,7 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
   onRequest(want: Want, startId: number): void {
     App.init(this.context);
     VpnStatus.setPersistenceContext(this.context, true);
+    VpnTrafficStore.setPersistenceContext(this.context, true);
     VpnStatus.logMessage(LogLevel.INFO, `VpnServiceAbility onRequest received, startId=${startId}.`);
     VpnStatus.logMessage(LogLevel.DEBUG, `onRequest want (startId=${startId}): ${this.describeWant(want)}`);
     this.installStatusListener();
@@ -452,6 +455,7 @@ export default class VpnServiceAbility extends VpnExtensionAbility {
     this.clearAuthWaitTimeout();
     this.running = true;
     VpnStatus.setConnectedVPNProfile(uuid);
+    VpnTrafficStore.beginSession(uuid);
     VpnStatus.logMessage(LogLevel.INFO, `Starting VPN, reason: ${reason}`);
 
     if (username !== '' || password !== '') {

@@ -6,6 +6,7 @@
  *   attach(cb)                      register event callback (log/event/tun_establish_req/done)
  *   startTunnel(opts)               eval config and connect on a worker thread
  *   stopTunnel()                    stop the running connection
+ *   getTunStats()                   read aggregate TUN traffic counters while active
  *   respondCrText({response})       answer an active CR_TEXT request
  *   resolveTunEstablish(fd)         answer a tun_establish_req with the TUN fd
  *
@@ -686,6 +687,58 @@ napi_value StopTunnel(napi_env, napi_callback_info)
     return nullptr;
 }
 
+napi_value GetTunStats(napi_env env, napi_callback_info)
+{
+    napi_value result;
+    napi_create_object(env, &result);
+
+    napi_value value;
+    napi_get_boolean(env, false, &value);
+    napi_set_named_property(env, result, "ok", value);
+    napi_create_string_utf8(env, "", NAPI_AUTO_LENGTH, &value);
+    napi_set_named_property(env, result, "error", value);
+
+    long long bytesIn = 0;
+    long long bytesOut = 0;
+    long long packetsIn = 0;
+    long long packetsOut = 0;
+    long long errorsIn = 0;
+    long long errorsOut = 0;
+    {
+        std::lock_guard<std::mutex> lock(g_client_mtx);
+        if (g_client == nullptr || !g_running.load()) {
+            napi_create_string_utf8(env, "no active OpenVPN client", NAPI_AUTO_LENGTH, &value);
+            napi_set_named_property(env, result, "error", value);
+            return result;
+        }
+        const ClientAPI::InterfaceStats stats = g_client->tun_stats();
+        bytesIn = stats.bytesIn;
+        bytesOut = stats.bytesOut;
+        packetsIn = stats.packetsIn;
+        packetsOut = stats.packetsOut;
+        errorsIn = stats.errorsIn;
+        errorsOut = stats.errorsOut;
+    }
+
+    napi_get_boolean(env, true, &value);
+    napi_set_named_property(env, result, "ok", value);
+    napi_create_double(env, static_cast<double>(bytesIn), &value);
+    napi_set_named_property(env, result, "bytesIn", value);
+    napi_create_double(env, static_cast<double>(bytesOut), &value);
+    napi_set_named_property(env, result, "bytesOut", value);
+    napi_create_double(env, static_cast<double>(packetsIn), &value);
+    napi_set_named_property(env, result, "packetsIn", value);
+    napi_create_double(env, static_cast<double>(packetsOut), &value);
+    napi_set_named_property(env, result, "packetsOut", value);
+    napi_create_double(env, static_cast<double>(errorsIn), &value);
+    napi_set_named_property(env, result, "errorsIn", value);
+    napi_create_double(env, static_cast<double>(errorsOut), &value);
+    napi_set_named_property(env, result, "errorsOut", value);
+    napi_create_string_utf8(env, "", NAPI_AUTO_LENGTH, &value);
+    napi_set_named_property(env, result, "error", value);
+    return result;
+}
+
 napi_value RespondCrText(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
@@ -756,6 +809,7 @@ static napi_value Init(napi_env env, napi_value exports)
         {"attach", nullptr, Attach, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"startTunnel", nullptr, StartTunnel, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"stopTunnel", nullptr, StopTunnel, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"getTunStats", nullptr, GetTunStats, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"respondCrText", nullptr, RespondCrText, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"resolveTunEstablish", nullptr, ResolveTunEstablish, nullptr, nullptr, nullptr, napi_default, nullptr},
     };

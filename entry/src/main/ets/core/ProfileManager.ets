@@ -9,6 +9,7 @@ import { Context } from '@kit.AbilityKit';
 import fs from '@ohos.file.fs';
 import { FileUtil } from '../common/FileUtil';
 import preferences from '@ohos.data.preferences';
+import { VpnTrafficStore } from './VpnTrafficStore';
 
 export class ProfileManager {
   private static profiles: Map<string, VpnProfile> = new Map<string, VpnProfile>();
@@ -58,7 +59,7 @@ export class ProfileManager {
         }
         let uuid = name.substring(0, name.length - '.json'.length);
         if (uuid === ProfileManager.TEMPORARY_PROFILE_FILENAME || uuid === 'vpn_status_snapshot' ||
-          uuid === 'pending-start') {
+          uuid === 'vpn_traffic_stats' || uuid === 'pending-start') {
           continue;
         }
         ProfileManager.loadVpnEntry(uuid);
@@ -157,6 +158,7 @@ export class ProfileManager {
   static removeProfile(context: Context, profile: VpnProfile): void {
     ProfileManager.ensureLoaded();
     ProfileManager.profiles.delete(profile.getUUID());
+    VpnTrafficStore.removeProfile(profile.getUUID());
     try {
       let path = `${context.filesDir}/${profile.getUUID()}.json`;
       if (fs.accessSync(path)) {

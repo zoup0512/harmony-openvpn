@@ -1049,6 +1049,34 @@
       "value": "数据不足"
     },
     {
+      "name": "traffic_stats_title",
+      "value": "VPN 流量统计"
+    },
+    {
+      "name": "traffic_stats_entry_summary",
+      "value": "查看每个 VPN 配置的今日和本月用量"
+    },
+    {
+      "name": "traffic_stats_summary",
+      "value": "流量按 VPN 隧道统计，并按设备本地日期归档。下载以红色显示，上传以蓝色显示。"
+    },
+    {
+      "name": "traffic_today",
+      "value": "今日"
+    },
+    {
+      "name": "traffic_this_month",
+      "value": "本月"
+    },
+    {
+      "name": "traffic_last_7_days",
+      "value": "最近 7 天"
+    },
+    {
+      "name": "traffic_no_profiles",
+      "value": "请先添加 VPN 配置，应用会从连接后开始收集流量统计。"
+    },
+    {
       "name": "app_behaviour",
       "value": "应用程序行为"
     },

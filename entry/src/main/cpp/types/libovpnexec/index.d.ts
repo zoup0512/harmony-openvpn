@@ -36,8 +36,20 @@ export interface OvpnStartResult {
   error: string;
 }
 
+export interface OvpnTunStats {
+  ok: boolean;
+  error: string;
+  bytesIn: number;
+  bytesOut: number;
+  packetsIn: number;
+  packetsOut: number;
+  errorsIn: number;
+  errorsOut: number;
+}
+
 export const attach: (callback: (event: OvpnNativeEvent) => void) => void;
 export const startTunnel: (options: OvpnStartOptions) => OvpnStartResult;
 export const stopTunnel: () => void;
+export const getTunStats: () => OvpnTunStats;
 export const respondCrText: (options: { response: string }) => OvpnStartResult;
 export const resolveTunEstablish: (fd: number) => void;

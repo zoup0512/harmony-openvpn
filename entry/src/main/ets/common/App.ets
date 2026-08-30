@@ -6,6 +6,7 @@ import { common } from '@kit.AbilityKit';
 import { ProfileManager } from '../core/ProfileManager';
 import { VpnStatus } from '../core/VpnStatus';
 import { GP } from './GP';
+import { VpnTrafficStore } from '../core/VpnTrafficStore';
 
 export class App {
   private static inited: boolean = false;
@@ -18,8 +19,9 @@ export class App {
     }
     App.inited = true;
     ProfileManager.init(context);
-    // The UI process reads the VPN snapshot; the VPN extension is the sole writer.
+    // The UI process reads VPN snapshots; the VPN extension is the sole writer.
     VpnStatus.setPersistenceContext(context, false);
+    VpnTrafficStore.setPersistenceContext(context, false);
     GP.init(context).catch(() => {
     });
     ProfileManager.warmupPrefs().then(() => {

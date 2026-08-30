@@ -9,6 +9,7 @@ import fs from '@ohos.file.fs';
 import hilog from '@ohos.hilog';
 import { FileUtil } from '../common/FileUtil';
 import { Context } from '@kit.AbilityKit';
+import { VpnTrafficStore } from './VpnTrafficStore';
 
 export type StateListener = (level: ConnectionStatus, cleanMessage: string, logItem: LogItem) => void;
 export type LogListener = (logItem: LogItem) => void;
@@ -198,6 +199,9 @@ export class VpnStatus {
 
   static updateByteCount(inBytes: number, outBytes: number): void {
     let diff = VpnStatus.trafficHistory.add(inBytes, outBytes);
+    if (VpnStatus.connectedVPNProfile !== undefined) {
+      VpnTrafficStore.recordSample(VpnStatus.connectedVPNProfile, inBytes, outBytes);
+    }
     VpnStatus.revision++;
     for (let l of VpnStatus.byteCountListeners) {
       l(inBytes, outBytes, diff.diffIn, diff.diffOut);
@@ -348,6 +352,12 @@ export class VpnStatus {
       VpnStatus.lastCleanMessage = (o['lastCleanMessage'] as string) ?? '';
       let uuid = (o['connectedVPNProfile'] as string) ?? '';
       VpnStatus.connectedVPNProfile = uuid === '' ? undefined : uuid;
+      let inBytes = o['inBytes'] as number;
+      let outBytes = o['outBytes'] as number;
+      if (typeof inBytes === 'number' && typeof outBytes === 'number' &&
+        isFinite(inBytes) && isFinite(outBytes) && inBytes >= 0 && outBytes >= 0) {
+        VpnStatus.trafficHistory.add(inBytes, outBytes);
+      }
       let logs = o['logs'] as Object[];
       if (logs !== undefined && logs !== null && logs.length > 0) {
         VpnStatus.logbuffer = [];

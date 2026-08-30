@@ -1185,6 +1185,14 @@
       "value": "Import configuration file"
     },
     {
+      "name": "import_from_local",
+      "value": "Local import"
+    },
+    {
+      "name": "import_from_cloud",
+      "value": "Cloud import"
+    },
+    {
       "name": "import_from_as",
       "value": "Import from Access Server/URL"
     },

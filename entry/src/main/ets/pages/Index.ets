@@ -219,6 +219,36 @@ struct Index {
     });
   }
 
+  private showImportChoices(): void {
+    let sheets: Array<SheetInfo> = [
+      {
+        title: R.s('import_from_local'),
+        action: () => {
+          this.importConfigFile();
+        }
+      },
+      {
+        title: R.s('import_from_cloud'),
+        action: () => {
+          this.asDialogController.open();
+        }
+      }
+    ];
+    let sheetOptions: ActionSheetOptions = {
+      title: R.s('import_config'),
+      message: '',
+      sheets: sheets,
+      confirm: {
+        value: R.s('cancel'),
+        action: () => {
+        }
+      },
+      cancel: () => {
+      }
+    };
+    ActionSheet.show(sheetOptions);
+  }
+
   private tabTitle(i: number): string {
     switch (i) {
       case 0:
@@ -249,19 +279,13 @@ struct Index {
             .width(24).height(24).fillColor(Color.White)
             .margin({ left: 16 })
             .onClick(() => {
-              this.importConfigFile();
+              this.showImportChoices();
             })
           Image($r('app.media.ic_sort'))
             .width(24).height(24).fillColor(Color.White)
             .margin({ left: 16 })
             .onClick(() => {
               this.changeSorting();
-            })
-          Image($r('app.media.ic_download'))
-            .width(24).height(24).fillColor(Color.White)
-            .margin({ left: 16 })
-            .onClick(() => {
-              this.asDialogController.open();
             })
         }
 

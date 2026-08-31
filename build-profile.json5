@@ -5,13 +5,13 @@
         "name": "default",
         "type": "HarmonyOS",
         "material": {
-          "certpath": "C:\\Users\\24790\\.ohos\\config\\default_harmony-openvpn_YWwYjIrmkOqZdQo70oLHmY1MGufN6Pm_oJ8DojQkKs0=.cer",
+          "certpath": "C:\\Users\\vyron\\.ohos\\config\\default_harmony-openvpn__8t99ylO3gYqML5jU2YB9OzL-h9gcCjFV4GdR6DMBoc=.cer",
           "keyAlias": "debugKey",
-          "keyPassword": "0000001B34C2EF3BF4FB7F36D33854DC4F8C82EED832E79B48F2E8A1492EB0F75E39B1E69B75A03D5B2C2B",
-          "profile": "C:\\Users\\24790\\.ohos\\config\\default_harmony-openvpn_YWwYjIrmkOqZdQo70oLHmY1MGufN6Pm_oJ8DojQkKs0=.p7b",
+          "keyPassword": "0000001BB4DD08C00516D93AFEA4F0151AD28014C70C507971DD6CF422317A675352ADDDC4A184F11C8938",
+          "profile": "C:\\Users\\vyron\\.ohos\\config\\default_harmony-openvpn__8t99ylO3gYqML5jU2YB9OzL-h9gcCjFV4GdR6DMBoc=.p7b",
           "signAlg": "SHA256withECDSA",
-          "storeFile": "C:\\Users\\24790\\.ohos\\config\\default_harmony-openvpn_YWwYjIrmkOqZdQo70oLHmY1MGufN6Pm_oJ8DojQkKs0=.p12",
-          "storePassword": "0000001BE84DA095806A84DA134F37170F3D31D64077921B4F25A479F81C31ABEF478BE676DEAC25AA4912"
+          "storeFile": "C:\\Users\\vyron\\.ohos\\config\\default_harmony-openvpn__8t99ylO3gYqML5jU2YB9OzL-h9gcCjFV4GdR6DMBoc=.p12",
+          "storePassword": "0000001B2CB0995018FE67F6F617742030B3DEEFFF81D6DB599DCBFA017C89FC7BEC16F2AB88B275550A3D"
         }
       }
     ],

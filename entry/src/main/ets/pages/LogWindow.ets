@@ -21,7 +21,6 @@ struct LogWindow {
   @State optionsVisible: boolean = false;
   @State logLevel: number = 1;
   @State timeFormat: number = 1;
-  @State clearLogConnect: boolean = true;
   @State entries: LogItem[] = [];
   @State speedStatus: string = '';
   @State lastStatus: string = '';
@@ -33,7 +32,6 @@ struct LogWindow {
   aboutToAppear(): void {
     this.logLevel = GP_getInt('verbositylevel', 1);
     this.timeFormat = GP_getInt('logtimeformat', 1);
-    this.clearLogConnect = GP.getBool('clearlogconnect', true);
     this.refresh();
     this.timerId = setInterval(() => {
       VpnStatus.restoreFromSnapshot();
@@ -245,20 +243,6 @@ struct LogWindow {
               .margin({ left: 4 })
           }
           .width('100%')
-
-          Row() {
-            Checkbox()
-              .select(this.clearLogConnect)
-              .selectedColor(Theme.PRIMARY)
-              .onChange((v: boolean) => {
-                this.clearLogConnect = v;
-                GP.setBool('clearlogconnect', v);
-              })
-            Text(R.s('clear_log_on_connect'))
-              .fontSize(13)
-          }
-          .width('100%')
-          .margin({ top: 4 })
         }
         .width('100%')
         .padding(12)

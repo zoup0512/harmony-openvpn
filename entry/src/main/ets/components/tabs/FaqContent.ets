@@ -11,20 +11,20 @@ class FaqEntry {
   }
 }
 
+// Hidden entries describe features this build does not have: faq_killswitch
+// (persist-tun / always-on not wired up), faq_remote_api (no remote API),
+// faq_different_clients (core is OpenVPN 3, not 2.x), faq_proxy (no system
+// proxy handling). Re-add an entry only once its feature actually works.
 const FAQ_ITEMS: FaqEntry[] = [
   new FaqEntry('faq_howto', 'faq_howto_body'),
-  new FaqEntry('faq_killswitch', 'faq_killswitch_body'),
-  new FaqEntry('faq_remote_api', 'faq_remote_api_body'),
   new FaqEntry('faq_ncp_title', 'faq_ncp_body'),
   new FaqEntry('faq_md5_hashes', 'faq_md5_body'),
   new FaqEntry('faq_duplicate_notifications', 'faq_duplicate_notifications_body'),
-  new FaqEntry('faq_different_clients', 'faq_different_clients_body'),
   new FaqEntry('faq_battery', 'faq_battery_body'),
   new FaqEntry('faq_tap', 'faq_tap_body'),
   new FaqEntry('faq_copying_log', 'faq_copying_log_body'),
   new FaqEntry('faq_routing', 'faq_routing_body'),
   new FaqEntry('faq_non_cidr', 'faq_non_cidr_body'),
-  new FaqEntry('faq_proxy', 'faq_proxy_body'),
   new FaqEntry('faq_security', 'faq_security_body'),
   new FaqEntry('faq_shortcut', 'faq_shortcut_body')
 ];

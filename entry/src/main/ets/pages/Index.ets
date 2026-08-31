@@ -1,6 +1,8 @@
 /**
  * Main page — replicates MainActivity: toolbar + the VPN profile list.
- * Traffic statistics and general settings open as pages from the toolbar.
+ * Traffic statistics, the log window and the about/FAQ page open as pages
+ * from the toolbar. The general settings entry is hidden while the settings
+ * page has no effective options.
  */
 
 import { router, promptAction } from '@kit.ArkUI';
@@ -240,13 +242,6 @@ struct Index {
           .margin({ left: 16 })
           .onClick(() => {
             this.showImportChoices();
-          })
-
-        Image($r('app.media.ic_settings'))
-          .width(24).height(24).fillColor(Color.White)
-          .margin({ left: 16 })
-          .onClick(() => {
-            router.pushUrl({ url: 'pages/Settings' });
           })
 
         Image($r('app.media.ic_chart'))

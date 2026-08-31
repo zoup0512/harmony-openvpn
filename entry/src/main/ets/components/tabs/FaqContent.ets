@@ -59,9 +59,9 @@ export struct FaqContent {
             .padding({ left: 4, right: 4, top: 12, bottom: 12 })
           if (this.isExpanded(index as number)) {
             Text(R.s(item.bodyKey))
-              .fontSize(13)
+              .fontSize(15)
               .fontColor(Theme.TEXT_SECONDARY)
-              .lineHeight(21)
+              .lineHeight(24)
               .width('100%')
               .padding({ left: 4, right: 4, bottom: 12 })
           }

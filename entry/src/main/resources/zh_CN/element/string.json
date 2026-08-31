@@ -1514,15 +1514,15 @@
     },
     {
       "name": "about_usage_step1",
-      "value": "1. 先在“配置”页导入或选择 .ovpn/.conf 配置，再到“连接”页启动 VPN。"
+      "value": "在主页右上角点击“导入”，选择本地 .ovpn/.conf 文件或从服务器/URL 获取配置完成导入；然后在配置列表中点击对应配置或打开其开关即可启动 VPN，再次点击或关闭开关即可断开。"
     },
     {
       "name": "about_usage_step2",
-      "value": "2. 本应用不内置服务器、账号或线路；OpenVPN 配置由用户自行提供和管理。"
+      "value": "本应用不内置服务器、账号或线路；OpenVPN 配置由用户自行提供和管理。"
     },
     {
       "name": "about_usage_step3",
-      "value": "3. 请仅连接你拥有权限的服务器或公司网络，并遵守所在地法律法规及网络服务条款。"
+      "value": "请仅连接你拥有权限的服务器或公司网络，并遵守所在地法律法规及网络服务条款。"
     },
     {
       "name": "about_usage_warning",
@@ -1566,11 +1566,11 @@
     },
     {
       "name": "about_feedback_intro",
-      "value": "如遇到连接、配置、界面显示或审核相关问题，请通过以下邮箱反馈。"
+      "value": "如遇到连接、配置、界面显示相关问题，请通过以下邮箱反馈。"
     },
     {
       "name": "about_feedback_email",
-      "value": "247900871@qq.com"
+      "value": "2479008771@qq.com"
     },
     {
       "name": "about_feedback_copy_hint",

@@ -1514,15 +1514,15 @@
     },
     {
       "name": "about_usage_step1",
-      "value": "1. Import or select an .ovpn/.conf configuration on the Configuration page, then start the VPN on the Connection page."
+      "value": "Tap Import at the top right of the main page to import a local .ovpn/.conf file or fetch a configuration from a server/URL, then tap the profile in the list (or turn on its switch) to start the VPN; tap it again or turn off the switch to disconnect."
     },
     {
       "name": "about_usage_step2",
-      "value": "2. This app does not include servers, accounts, or routes. OpenVPN configurations are provided and managed by users."
+      "value": "This app does not include servers, accounts, or routes. OpenVPN configurations are provided and managed by users."
     },
     {
       "name": "about_usage_step3",
-      "value": "3. Connect only to servers or company networks that you are authorized to use, and comply with local laws and network service terms."
+      "value": "Connect only to servers or company networks that you are authorized to use, and comply with local laws and network service terms."
     },
     {
       "name": "about_usage_warning",
@@ -1566,11 +1566,11 @@
     },
     {
       "name": "about_feedback_intro",
-      "value": "For connection, configuration, interface display, or review-related issues, contact us at the email below."
+      "value": "For connection, configuration, or interface display issues, contact us at the email below."
     },
     {
       "name": "about_feedback_email",
-      "value": "247900871@qq.com"
+      "value": "2479008771@qq.com"
     },
     {
       "name": "about_feedback_copy_hint",

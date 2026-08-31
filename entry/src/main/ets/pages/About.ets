@@ -94,6 +94,25 @@ struct About {
   }
 
   @Builder
+  UsageStepItem(index: number, text: string, topMargin: number) {
+    Row() {
+      Text(`${index}.`)
+        .fontSize(15)
+        .fontColor(ABOUT_TEXT_SECONDARY)
+        .lineHeight(24)
+      Text(text)
+        .fontSize(15)
+        .fontColor(ABOUT_TEXT_SECONDARY)
+        .lineHeight(24)
+        .layoutWeight(1)
+        .padding({ left: 6 })
+    }
+    .width('100%')
+    .alignItems(VerticalAlign.Top)
+    .margin({ top: topMargin })
+  }
+
+  @Builder
   UsageCard() {
     Column() {
       Text(R.s('about_usage_title'))
@@ -103,29 +122,15 @@ struct About {
         .width('100%')
         .margin({ bottom: 20 })
 
-      Text(R.s('about_usage_step1'))
-        .fontSize(17)
-        .fontColor(ABOUT_TEXT_SECONDARY)
-        .lineHeight(29)
-        .width('100%')
-      Text(R.s('about_usage_step2'))
-        .fontSize(17)
-        .fontColor(ABOUT_TEXT_SECONDARY)
-        .lineHeight(29)
-        .width('100%')
-        .margin({ top: 4 })
-      Text(R.s('about_usage_step3'))
-        .fontSize(17)
-        .fontColor(ABOUT_TEXT_SECONDARY)
-        .lineHeight(29)
-        .width('100%')
-        .margin({ top: 4 })
+      this.UsageStepItem(1, R.s('about_usage_step1'), 0)
+      this.UsageStepItem(2, R.s('about_usage_step2'), 4)
+      this.UsageStepItem(3, R.s('about_usage_step3'), 4)
 
       Text(R.s('about_usage_warning'))
-        .fontSize(16)
+        .fontSize(15)
         .fontWeight(FontWeight.Bold)
         .fontColor(Theme.WARNING_RED)
-        .lineHeight(28)
+        .lineHeight(24)
         .width('100%')
         .margin({ top: 20 })
     }
@@ -173,7 +178,7 @@ struct About {
         }))
 
       Text(R.s('about_pay_save_hint'))
-        .fontSize(16)
+        .fontSize(15)
         .fontWeight(FontWeight.Bold)
         .fontColor('#FF6B0B')
         .margin({ top: 14 })
@@ -201,14 +206,14 @@ struct About {
         .width('100%')
 
       Text(R.s('about_feedback_intro'))
-        .fontSize(17)
+        .fontSize(15)
         .fontColor(ABOUT_TEXT_SECONDARY)
-        .lineHeight(29)
+        .lineHeight(24)
         .width('100%')
         .margin({ top: 20 })
 
       Text(R.s('about_feedback_email'))
-        .fontSize(25)
+        .fontSize(16)
         .fontWeight(FontWeight.Bold)
         .fontColor(FEEDBACK_TEXT)
         .width('100%')
@@ -221,17 +226,10 @@ struct About {
         }))
 
       Text(R.s('about_feedback_copy_hint'))
-        .fontSize(16)
+        .fontSize(15)
         .fontColor(FEEDBACK_TEXT)
         .width('100%')
         .margin({ top: 14 })
-
-      Text(R.s('about_feedback_advice'))
-        .fontSize(16)
-        .fontColor(ABOUT_TEXT_MUTED)
-        .lineHeight(27)
-        .width('100%')
-        .margin({ top: 18 })
     }
     .width('100%')
     .alignItems(HorizontalAlign.Start)

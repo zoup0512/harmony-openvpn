@@ -4,7 +4,7 @@
 
 - bundleName：`com.razor.tools.openvpn`
 - 目标版本：HarmonyOS 6.1.0 (API 23)（使用 DevEco Studio 6.1 构建，编译 SDK 24）
-- 界面与功能对照 Android 原版复刻，Material 配色（primary `#3F51B5` / dark `#303F9F` / accent `#FFA726`）
+- 界面与功能对照 Android 原版复刻，品牌配色以桌面图标蓝为核心（primary `#1456B8` / dark `#1E3862` / accent `#1F7EFA`）；橙色 `#F5821F` 仅用于连接中和提醒状态
 - 资源：英文（base）+ 简体中文（zh_CN），文案对照原版 strings.xml / values-zh-rCN
 
 ## 构建与运行

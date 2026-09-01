@@ -56,31 +56,39 @@ export struct ShowConfigTab {
       Scroll() {
         Text(this.configText)
           .fontSize(12)
-          .fontColor(Theme.TEXT_PRIMARY)
+          .fontColor(Theme.DARK_TEXT_PRIMARY)
           .fontFamily('monospace')
+          .lineHeight(19)
           .padding(16)
           .width('100%')
           .textAlign(TextAlign.Start)
+          .backgroundColor(Theme.DARK_SURFACE)
+          .border({ width: 1, color: Theme.DARK_BORDER })
+          .borderRadius(Theme.DARK_CARD_RADIUS)
       }
       .width('100%')
       .height('100%')
-      .backgroundColor(Theme.CARD_BG)
+      .padding({ left: 12, right: 12, top: 12, bottom: 84 })
+      .backgroundColor(Theme.DARK_BACKGROUND)
 
       Button() {
-        Image($r('app.media.ic_share'))
-          .width(24).height(24).fillColor(Color.White)
+        Image($r('app.media.ic_copy'))
+          .width(24)
+          .height(24)
+          .fillColor(Theme.DARK_BACKGROUND)
       }
       .width(56)
       .height(56)
       .borderRadius(28)
-      .backgroundColor(Theme.ACCENT)
+      .backgroundColor(Theme.DARK_ACCENT)
       .margin(16)
-      .shadow({ radius: 4, color: '#66000000', offsetX: 2, offsetY: 4 })
+      .shadow({ radius: 8, color: '#99000000', offsetX: 0, offsetY: 4 })
       .onClick(() => {
         this.share();
       })
     }
     .width('100%')
     .height('100%')
+    .backgroundColor(Theme.DARK_BACKGROUND)
   }
 }

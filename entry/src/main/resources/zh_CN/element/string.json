@@ -501,6 +501,26 @@
       "value": "基本设置"
     },
     {
+      "name": "basic_general_section",
+      "value": "常规设置"
+    },
+    {
+      "name": "basic_authentication_section",
+      "value": "身份认证"
+    },
+    {
+      "name": "basic_certificate_section",
+      "value": "证书材料"
+    },
+    {
+      "name": "basic_unsupported_section",
+      "value": "不支持的选项"
+    },
+    {
+      "name": "basic_trust_section",
+      "value": "信任与吊销"
+    },
+    {
       "name": "use_pull",
       "value": "拉取设置"
     },
@@ -683,6 +703,10 @@
     {
       "name": "x509_username_field",
       "value": "X509 用户名字段"
+    },
+    {
+      "name": "x509_username_default",
+      "value": "CN（默认）"
     },
     {
       "name": "x509_username_field_summary",
@@ -1591,6 +1615,86 @@
     {
       "name": "profile_edit",
       "value": "编辑配置"
+    },
+    {
+      "name": "profile_edit_connection_section",
+      "value": "连接信息"
+    },
+    {
+      "name": "profile_edit_connection_hint",
+      "value": "检查配置名称以及连接时使用的服务器。"
+    },
+    {
+      "name": "profile_edit_credentials_section",
+      "value": "登录信息"
+    },
+    {
+      "name": "profile_edit_credentials_hint",
+      "value": "设置可选用户名，并选择是否在本机保存密码。"
+    },
+    {
+      "name": "profile_edit_details_section",
+      "value": "配置详情"
+    },
+    {
+      "name": "profile_edit_details_hint",
+      "value": "复制配置标识，或打开完整的 OpenVPN 配置。"
+    },
+    {
+      "name": "profile_edit_actions_section",
+      "value": "快捷操作"
+    },
+    {
+      "name": "profile_edit_actions_hint",
+      "value": "创建桌面连接快捷方式，或配置代理服务器。"
+    },
+    {
+      "name": "profile_edit_management_section",
+      "value": "配置管理"
+    },
+    {
+      "name": "profile_edit_management_hint",
+      "value": "此区域中的操作可能影响配置的后续使用。"
+    },
+    {
+      "name": "profile_edit_locked_badge",
+      "value": "已锁定"
+    },
+    {
+      "name": "profile_edit_locked_hint",
+      "value": "如需修改原始服务器，请前往“高级设置 > 服务器列表”。"
+    },
+    {
+      "name": "profile_edit_override_placeholder",
+      "value": "使用配置中的服务器"
+    },
+    {
+      "name": "profile_edit_override_hint",
+      "value": "设置后，连接将使用此地址，但不会修改配置中保存的原始服务器。"
+    },
+    {
+      "name": "profile_edit_password_saved",
+      "value": "密码将随此配置保存在本机"
+    },
+    {
+      "name": "profile_edit_password_not_saved",
+      "value": "需要时将提示输入密码"
+    },
+    {
+      "name": "profile_edit_advanced_description",
+      "value": "服务器、证书、DNS、路由、加密、应用规则和生成配置"
+    },
+    {
+      "name": "profile_edit_shortcut_description",
+      "value": "在桌面添加快捷方式，可直接启动此 VPN 配置。"
+    },
+    {
+      "name": "profile_edit_proxy_description",
+      "value": "打开服务器列表，选择 HTTP 或 SOCKS5 并填写代理信息。"
+    },
+    {
+      "name": "profile_edit_delete_description",
+      "value": "从本机永久删除此配置及其连接快捷方式。"
     },
     {
       "name": "save",

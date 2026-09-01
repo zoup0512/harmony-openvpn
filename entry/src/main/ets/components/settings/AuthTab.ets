@@ -12,6 +12,10 @@ import { InputDialog, InputDialogModel } from '../InputDialog';
 import { showSingleChoice, tlsDirectionEntries, tlsDirectionValues, tlsProfileEntries, tlsProfileValues,
   x509VerifyLabel, x509VerifyEntries } from './SettingsCommon';
 
+const TAB_BACKGROUND: string = Theme.DARK_BACKGROUND;
+const TAB_SURFACE: string = Theme.DARK_SURFACE;
+const TAB_BORDER: string = Theme.DARK_BORDER;
+
 @Component
 export struct AuthTab {
   profile: VpnProfile = new VpnProfile('unset');
@@ -28,13 +32,13 @@ export struct AuthTab {
   @State auth: string = '';
   private editModel: InputDialogModel = new InputDialogModel();
   private editDialog: CustomDialogController = new CustomDialogController({
-    builder: InputDialog({ model: this.editModel }),
+    builder: InputDialog({ model: this.editModel, darkMode: true }),
     autoCancel: true,
     customStyle: true
   });
   private cnModel: InputDialogModel = new InputDialogModel();
   private cnDialog: CustomDialogController = new CustomDialogController({
-    builder: InputDialog({ model: this.cnModel }),
+    builder: InputDialog({ model: this.cnModel, darkMode: true }),
     autoCancel: true,
     customStyle: true
   });
@@ -131,119 +135,156 @@ export struct AuthTab {
   build() {
     Scroll() {
       Column() {
-        PrefCategory({ title: R.s('tls_settings') })
-        TapRow({
-          title: R.s('tls_profile'),
-          summary: this.tlsProfile === '' ? R.s('tls_profile_legacy') : this.tlsProfile,
-          onRowClick: () => {
-            let values = tlsProfileValues();
-            let idx = values.indexOf(this.tlsProfile);
-            showSingleChoice(R.s('tls_profile'), tlsProfileEntries(), idx, (i: number) => {
-              this.tlsProfile = values[i];
-              this.profile.mTlSCertProfile = values[i];
-            });
-          }
-        })
-        CheckRow({
-          title: R.s('check_remote_tlscert_title'),
-          summary: R.s('check_remote_tlscert'),
-          checked: this.expectTLSCert,
-          rowEnabled: !this.isStaticKeys(),
-          onChange: (v: boolean) => {
-            this.expectTLSCert = v;
-            this.profile.mExpectTLSCert = v;
-          }
-        })
-        CheckRow({
-          title: R.s('remote_tlscn_check_title'),
-          summary: R.s('remote_tlscn_check_summary'),
-          checked: this.checkRemoteCN,
-          rowEnabled: !this.isStaticKeys(),
-          onChange: (v: boolean) => {
-            this.checkRemoteCN = v;
-            this.profile.mCheckRemoteCN = v;
-          }
-        })
-        if (this.checkRemoteCN) {
+        PrefCategory({ title: R.s('tls_settings'), darkMode: true })
+        Column() {
           TapRow({
-            title: R.s('enter_tlscn_title'),
-            summary: this.remotecnSummary(),
+            title: R.s('tls_profile'),
+            summary: this.tlsProfile === '' ? R.s('tls_profile_legacy') : this.tlsProfile,
+            darkMode: true,
             onRowClick: () => {
-              this.openRemoteCnDialog();
+              let values = tlsProfileValues();
+              let idx = values.indexOf(this.tlsProfile);
+              showSingleChoice(R.s('tls_profile'), tlsProfileEntries(), idx, (i: number) => {
+                this.tlsProfile = values[i];
+                this.profile.mTlSCertProfile = values[i];
+              });
+            }
+          })
+          CheckRow({
+            title: R.s('check_remote_tlscert_title'),
+            summary: R.s('check_remote_tlscert'),
+            checked: this.expectTLSCert,
+            rowEnabled: !this.isStaticKeys(),
+            darkMode: true,
+            onChange: (v: boolean) => {
+              this.expectTLSCert = v;
+              this.profile.mExpectTLSCert = v;
+            }
+          })
+          CheckRow({
+            title: R.s('remote_tlscn_check_title'),
+            summary: R.s('remote_tlscn_check_summary'),
+            checked: this.checkRemoteCN,
+            rowEnabled: !this.isStaticKeys(),
+            showDivider: this.checkRemoteCN,
+            darkMode: true,
+            onChange: (v: boolean) => {
+              this.checkRemoteCN = v;
+              this.profile.mCheckRemoteCN = v;
+            }
+          })
+          if (this.checkRemoteCN) {
+            TapRow({
+              title: R.s('enter_tlscn_title'),
+              summary: this.remotecnSummary(),
+              darkMode: true,
+              onRowClick: () => {
+                this.openRemoteCnDialog();
+              }
+            })
+            TapRow({
+              title: R.s('x509_username_field'),
+              summary: this.x509UserField === '' ? R.s('x509_username_default') : this.x509UserField,
+              showDivider: false,
+              darkMode: true,
+              onRowClick: () => {
+                this.promptEdit('x509_username_field', 'x509_username_field_summary', this.x509UserField,
+                  (v: string) => {
+                    this.x509UserField = v;
+                    this.profile.mx509UsernameField = v === '' ? undefined : v;
+                  });
+              }
+            })
+          }
+        }
+        .width('100%')
+        .backgroundColor(TAB_SURFACE)
+        .border({ width: 1, color: TAB_BORDER })
+        .borderRadius(16)
+        .margin({ top: 0, bottom: 0 })
+
+        PrefCategory({ title: R.s('tls_authentication'), darkMode: true })
+        Column() {
+          SwitchRow({
+            title: R.s('useTLSAuth'),
+            summary: R.s('tls_key_auth'),
+            checked: this.useTLSAuth,
+            darkMode: true,
+            onChange: (v: boolean) => {
+              this.useTLSAuth = v;
+              this.profile.mUseTLSAuth = v;
+            }
+          })
+          if (this.useTLSAuth) {
+            FileSelectRow({
+              title: R.s('tls_auth_file'),
+              value: this.tlsAuthFile,
+              darkMode: true,
+              onSelect: (v: string) => {
+                this.tlsAuthFile = v;
+                this.profile.mTLSAuthFilename = v === '' ? undefined : v;
+              }
+            })
+            TapRow({
+              title: R.s('tls_direction'),
+              summary: tlsDirectionEntries()[tlsDirectionValues().indexOf(this.tlsDirection)],
+              showDivider: false,
+              darkMode: true,
+              onRowClick: () => {
+                let values = tlsDirectionValues();
+                showSingleChoice(R.s('tls_direction'), tlsDirectionEntries(), values.indexOf(this.tlsDirection),
+                  (i: number) => {
+                    this.tlsDirection = values[i];
+                    this.profile.mTLSAuthDirection = values[i];
+                  });
+              }
+            })
+          }
+        }
+        .width('100%')
+        .backgroundColor(TAB_SURFACE)
+        .border({ width: 1, color: TAB_BORDER })
+        .borderRadius(16)
+        .margin({ top: 0, bottom: 0 })
+
+        PrefCategory({ title: R.s('encryption'), darkMode: true })
+        Column() {
+          TapRow({
+            title: R.s('encryption_cipher'),
+            summary: this.dataCiphers,
+            darkMode: true,
+            onRowClick: () => {
+              this.promptEdit('encryption_cipher', 'chipher_dialog_message', this.dataCiphers, (v: string) => {
+                this.dataCiphers = v;
+                this.profile.mDataCiphers = v;
+              });
             }
           })
           TapRow({
-            title: R.s('x509_username_field'),
-            summary: this.x509UserField === '' ? 'CN (default)' : this.x509UserField,
+            title: R.s('packet_auth'),
+            summary: this.auth,
+            showDivider: false,
+            darkMode: true,
             onRowClick: () => {
-              this.promptEdit('x509_username_field', 'x509_username_field_summary', this.x509UserField,
-                (v: string) => {
-                  this.x509UserField = v;
-                  this.profile.mx509UsernameField = v === '' ? undefined : v;
-                });
+              this.promptEdit('packet_auth', 'auth_dialog_message', this.auth, (v: string) => {
+                this.auth = v;
+                this.profile.mAuth = v;
+              });
             }
           })
         }
-
-        PrefCategory({ title: R.s('tls_authentication') })
-        SwitchRow({
-          title: R.s('useTLSAuth'),
-          summary: R.s('tls_key_auth'),
-          checked: this.useTLSAuth,
-          onChange: (v: boolean) => {
-            this.useTLSAuth = v;
-            this.profile.mUseTLSAuth = v;
-          }
-        })
-        if (this.useTLSAuth) {
-          FileSelectRow({
-            title: R.s('tls_auth_file'),
-            value: this.tlsAuthFile,
-            onSelect: (v: string) => {
-              this.tlsAuthFile = v;
-              this.profile.mTLSAuthFilename = v === '' ? undefined : v;
-            }
-          })
-          TapRow({
-            title: R.s('tls_direction'),
-            summary: tlsDirectionEntries()[tlsDirectionValues().indexOf(this.tlsDirection)],
-            onRowClick: () => {
-              let values = tlsDirectionValues();
-              showSingleChoice(R.s('tls_direction'), tlsDirectionEntries(), values.indexOf(this.tlsDirection),
-                (i: number) => {
-                  this.tlsDirection = values[i];
-                  this.profile.mTLSAuthDirection = values[i];
-                });
-            }
-          })
-        }
-
-        PrefCategory({ title: R.s('encryption') })
-        TapRow({
-          title: R.s('encryption_cipher'),
-          summary: this.dataCiphers,
-          onRowClick: () => {
-            this.promptEdit('encryption_cipher', 'chipher_dialog_message', this.dataCiphers, (v: string) => {
-              this.dataCiphers = v;
-              this.profile.mDataCiphers = v;
-            });
-          }
-        })
-        TapRow({
-          title: R.s('packet_auth'),
-          summary: this.auth,
-          onRowClick: () => {
-            this.promptEdit('packet_auth', 'auth_dialog_message', this.auth, (v: string) => {
-              this.auth = v;
-              this.profile.mAuth = v;
-            });
-          }
-        })
+        .width('100%')
+        .backgroundColor(TAB_SURFACE)
+        .border({ width: 1, color: TAB_BORDER })
+        .borderRadius(16)
+        .margin({ bottom: 32 })
       }
       .width('100%')
+      .padding({ left: 16, right: 16 })
+      .backgroundColor(TAB_BACKGROUND)
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(Theme.WINDOW_BG)
+    .backgroundColor(TAB_BACKGROUND)
   }
 }

@@ -18,7 +18,6 @@ const PROFILES_BACKGROUND: string = Theme.WINDOW_BG;
 const PROFILES_CARD_BACKGROUND: string = Theme.CARD_BG;
 const PROFILES_TEXT_PRIMARY: string = Theme.TEXT_PRIMARY;
 const PROFILES_TEXT_SECONDARY: string = Theme.TEXT_SECONDARY;
-const PROFILES_NOTICE_BACKGROUND: string = '#1AFFA726';
 
 @Component
 export struct ProfilesTab {
@@ -298,22 +297,22 @@ export struct ProfilesTab {
 
   private connectionStatusColor(): string {
     if (VpnStatus.lastState === 'AUTH_FAILED' || VpnStatus.lastState === 'SESSION_EXPIRED') {
-      return Theme.WARNING_RED;
+      return Theme.STATUS_ERROR;
     }
     if (!VpnStatus.isVPNActive()) {
       return PROFILES_TEXT_SECONDARY;
     }
-    return VpnStatus.lastState === 'CONNECTED' ? Theme.SUCCESS : Theme.ACCENT;
+    return VpnStatus.lastState === 'CONNECTED' ? Theme.STATUS_SUCCESS : Theme.STATUS_CONNECTING;
   }
 
   private connectionStatusBackground(): string {
     if (VpnStatus.lastState === 'AUTH_FAILED' || VpnStatus.lastState === 'SESSION_EXPIRED') {
-      return '#14FF0000';
+      return Theme.STATUS_ERROR_BG;
     }
     if (!VpnStatus.isVPNActive()) {
-      return '#0F000000';
+      return Theme.STATUS_IDLE_BG;
     }
-    return VpnStatus.lastState === 'CONNECTED' ? '#142E7D32' : '#1AFFA726';
+    return VpnStatus.lastState === 'CONNECTED' ? Theme.STATUS_SUCCESS_BG : Theme.STATUS_CONNECTING_BG;
   }
 
   @Builder
@@ -322,7 +321,7 @@ export struct ProfilesTab {
       Image($r('app.media.ic_bell'))
         .width(20)
         .height(20)
-        .fillColor(Theme.ACCENT)
+        .fillColor(Theme.NOTICE_LIGHT)
       Text(R.s('missing_notification_permission'))
         .fontSize(13)
         .fontColor(PROFILES_TEXT_PRIMARY)
@@ -333,8 +332,8 @@ export struct ProfilesTab {
     .width('100%')
     .padding(12)
     .margin({ left: 12, right: 12, top: 12, bottom: 4 })
-    .backgroundColor(PROFILES_NOTICE_BACKGROUND)
-    .border({ width: 1, color: Theme.ACCENT })
+    .backgroundColor(Theme.NOTICE_LIGHT_BG)
+    .border({ width: 1, color: Theme.NOTICE_LIGHT })
     .borderRadius(10)
     .alignItems(VerticalAlign.Center)
     .onClick(() => {

@@ -29,6 +29,7 @@ export class InputDialogModel {
 export struct InputDialog {
   controller?: CustomDialogController;
   model: InputDialogModel = new InputDialogModel();
+  @Prop darkMode: boolean = false;
   @State text: string = '';
 
   aboutToAppear(): void {
@@ -40,31 +41,59 @@ export struct InputDialog {
       Text(this.model.title)
         .fontSize(20)
         .fontWeight(FontWeight.Medium)
-        .fontColor(Theme.TEXT_PRIMARY)
+        .fontColor(this.darkMode ? Theme.DARK_TEXT_PRIMARY : Theme.TEXT_PRIMARY)
         .width('100%')
         .padding({ bottom: 8 })
       if (this.model.message !== '') {
         Text(this.model.message)
           .fontSize(14)
-          .fontColor(Theme.TEXT_SECONDARY)
+          .fontColor(this.darkMode ? Theme.DARK_TEXT_SECONDARY : Theme.TEXT_SECONDARY)
           .width('100%')
           .padding({ bottom: 8 })
           .textAlign(TextAlign.Start)
       }
       if (this.model.multiLine) {
-        TextArea({ text: this.text, placeholder: this.model.placeholder })
-          .onChange((value: string) => {
-            this.text = value;
-          })
-          .height(120)
-          .width('100%')
+        if (this.darkMode) {
+          TextArea({ text: this.text, placeholder: this.model.placeholder })
+            .fontColor(Theme.DARK_TEXT_PRIMARY)
+            .placeholderColor(Theme.DARK_TEXT_DISABLED)
+            .backgroundColor(Theme.DARK_SURFACE_ALT)
+            .border({ width: 1, color: Theme.DARK_BORDER })
+            .borderRadius(Theme.DARK_INPUT_RADIUS)
+            .onChange((value: string) => {
+              this.text = value;
+            })
+            .height(120)
+            .width('100%')
+        } else {
+          TextArea({ text: this.text, placeholder: this.model.placeholder })
+            .onChange((value: string) => {
+              this.text = value;
+            })
+            .height(120)
+            .width('100%')
+        }
       } else {
-        TextInput({ text: this.text, placeholder: this.model.placeholder })
-          .type(this.model.isPassword ? InputType.Password : InputType.Normal)
-          .onChange((value: string) => {
-            this.text = value;
-          })
-          .width('100%')
+        if (this.darkMode) {
+          TextInput({ text: this.text, placeholder: this.model.placeholder })
+            .type(this.model.isPassword ? InputType.Password : InputType.Normal)
+            .fontColor(Theme.DARK_TEXT_PRIMARY)
+            .placeholderColor(Theme.DARK_TEXT_DISABLED)
+            .backgroundColor(Theme.DARK_SURFACE_ALT)
+            .border({ width: 1, color: Theme.DARK_BORDER })
+            .borderRadius(Theme.DARK_INPUT_RADIUS)
+            .onChange((value: string) => {
+              this.text = value;
+            })
+            .width('100%')
+        } else {
+          TextInput({ text: this.text, placeholder: this.model.placeholder })
+            .type(this.model.isPassword ? InputType.Password : InputType.Normal)
+            .onChange((value: string) => {
+              this.text = value;
+            })
+            .width('100%')
+        }
       }
       Row() {
         if (this.model.neutralText !== '') {
@@ -74,9 +103,9 @@ export struct InputDialog {
             .height(Theme.DIALOG_BUTTON_HEIGHT)
             .constraintSize({ minWidth: Theme.DIALOG_BUTTON_MIN_WIDTH })
             .padding({ left: 16, right: 16 })
-            .backgroundColor(Theme.CARD_BG)
-            .fontColor(Theme.PRIMARY)
-            .border({ width: 1, color: Theme.PRIMARY })
+            .backgroundColor(this.darkMode ? Theme.DARK_SURFACE_ALT : Theme.CARD_BG)
+            .fontColor(this.darkMode ? Theme.DARK_ACCENT : Theme.PRIMARY)
+            .border({ width: 1, color: this.darkMode ? Theme.DARK_ACCENT : Theme.PRIMARY })
             .borderRadius(Theme.DIALOG_BUTTON_RADIUS)
             .onClick(() => {
               this.controller?.close();
@@ -90,9 +119,9 @@ export struct InputDialog {
           .height(Theme.DIALOG_BUTTON_HEIGHT)
           .constraintSize({ minWidth: Theme.DIALOG_BUTTON_MIN_WIDTH })
           .padding({ left: 16, right: 16 })
-          .backgroundColor(Theme.CARD_BG)
-          .fontColor(Theme.PRIMARY)
-          .border({ width: 1, color: Theme.PRIMARY })
+          .backgroundColor(this.darkMode ? Theme.DARK_SURFACE_ALT : Theme.CARD_BG)
+          .fontColor(this.darkMode ? Theme.DARK_ACCENT : Theme.PRIMARY)
+          .border({ width: 1, color: this.darkMode ? Theme.DARK_ACCENT : Theme.PRIMARY })
           .borderRadius(Theme.DIALOG_BUTTON_RADIUS)
           .onClick(() => {
             this.controller?.close();
@@ -104,7 +133,7 @@ export struct InputDialog {
           .height(Theme.DIALOG_BUTTON_HEIGHT)
           .constraintSize({ minWidth: Theme.DIALOG_BUTTON_MIN_WIDTH })
           .padding({ left: 16, right: 16 })
-          .backgroundColor(Theme.PRIMARY)
+          .backgroundColor(this.darkMode ? Theme.DARK_ACTION : Theme.PRIMARY)
           .fontColor(Theme.WHITE)
           .borderRadius(Theme.DIALOG_BUTTON_RADIUS)
           .margin({ left: Theme.DIALOG_BUTTON_GAP })
@@ -120,7 +149,7 @@ export struct InputDialog {
       .margin({ top: 16 })
     }
     .padding(20)
-    .backgroundColor(Color.White)
-    .borderRadius(4)
+    .backgroundColor(this.darkMode ? Theme.DARK_SURFACE : Color.White)
+    .borderRadius(this.darkMode ? Theme.DARK_CARD_RADIUS : 4)
   }
 }

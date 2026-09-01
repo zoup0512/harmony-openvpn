@@ -17,6 +17,7 @@ export struct FileSelectRow {
   @Prop certificate: boolean = false;
   @Prop showClear: boolean = false;
   @Prop suffixes: string = '.pem,.crt,.cer,.key,.ovpn,.conf,.txt';
+  @Prop darkMode: boolean = false;
   onSelect: (value: string) => void = () => {
   };
   @State private certDesc: string = '';
@@ -59,12 +60,12 @@ export struct FileSelectRow {
       Text(this.title)
         .fontSize(15)
         .fontWeight(FontWeight.Bold)
-        .fontColor(Theme.TEXT_PRIMARY)
+        .fontColor(this.darkMode ? Theme.DARK_TEXT_PRIMARY : Theme.TEXT_PRIMARY)
         .width('100%')
         .padding({ bottom: 4 })
       Text(this.displayValue())
         .fontSize(14)
-        .fontColor(Theme.TEXT_SECONDARY)
+        .fontColor(this.darkMode ? Theme.DARK_TEXT_SECONDARY : Theme.TEXT_SECONDARY)
         .width('100%')
         .padding({ bottom: 2 })
         .onClick(() => {
@@ -73,7 +74,7 @@ export struct FileSelectRow {
       if (this.certDesc !== '') {
         Text(this.certDesc)
           .fontSize(13)
-          .fontColor(Theme.TEXT_SECONDARY)
+          .fontColor(this.darkMode ? Theme.DARK_TEXT_SECONDARY : Theme.TEXT_SECONDARY)
           .width('100%')
           .padding({ bottom: 2 })
       }
@@ -81,10 +82,10 @@ export struct FileSelectRow {
         Button(R.s('select'))
           .fontSize(13)
           .height(32)
-          .backgroundColor(0)
-          .fontColor(Theme.PRIMARY)
-          .borderRadius(2)
-          .border({ width: 1, color: Theme.PRIMARY })
+          .backgroundColor(this.darkMode ? Theme.DARK_SURFACE_ALT : Theme.TRANSPARENT)
+          .fontColor(this.darkMode ? Theme.DARK_ACCENT : Theme.PRIMARY)
+          .borderRadius(this.darkMode ? Theme.DARK_INPUT_RADIUS : 2)
+          .border({ width: 1, color: this.darkMode ? Theme.DARK_ACCENT : Theme.PRIMARY })
           .onClick(() => {
             this.pick();
           })
@@ -92,10 +93,10 @@ export struct FileSelectRow {
           Button(R.s('clear'))
             .fontSize(13)
             .height(32)
-            .backgroundColor(0)
-            .fontColor(Theme.PRIMARY)
-            .borderRadius(2)
-            .border({ width: 1, color: Theme.PRIMARY })
+            .backgroundColor(this.darkMode ? Theme.DARK_SURFACE_ALT : Theme.TRANSPARENT)
+            .fontColor(this.darkMode ? Theme.DARK_ACCENT : Theme.PRIMARY)
+            .borderRadius(this.darkMode ? Theme.DARK_INPUT_RADIUS : 2)
+            .border({ width: 1, color: this.darkMode ? Theme.DARK_ACCENT : Theme.PRIMARY })
             .margin({ left: 8 })
             .onClick(() => {
               this.value = '';
@@ -109,8 +110,12 @@ export struct FileSelectRow {
     }
     .width('100%')
     .padding({ left: 16, right: 16, top: 10, bottom: 10 })
-    .backgroundColor(Theme.CARD_BG)
-    .border({ width: { bottom: 1 }, color: '1F000000' })
+    .backgroundColor(this.darkMode ? Theme.DARK_SURFACE : Theme.CARD_BG)
+    .border({
+      width: { bottom: 1 },
+      color: this.darkMode ? Theme.DARK_BORDER : Theme.DIVIDER
+    })
+    .borderRadius(this.darkMode ? Theme.DARK_CARD_RADIUS : 0)
     .alignItems(HorizontalAlign.Start)
   }
 

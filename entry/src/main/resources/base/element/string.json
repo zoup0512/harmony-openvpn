@@ -501,6 +501,26 @@
       "value": "Basic"
     },
     {
+      "name": "basic_general_section",
+      "value": "General"
+    },
+    {
+      "name": "basic_authentication_section",
+      "value": "Authentication"
+    },
+    {
+      "name": "basic_certificate_section",
+      "value": "Certificate material"
+    },
+    {
+      "name": "basic_unsupported_section",
+      "value": "Unsupported options"
+    },
+    {
+      "name": "basic_trust_section",
+      "value": "Trust and revocation"
+    },
+    {
       "name": "use_pull",
       "value": "Pull Settings"
     },
@@ -683,6 +703,10 @@
     {
       "name": "x509_username_field",
       "value": "X509 Username Field"
+    },
+    {
+      "name": "x509_username_default",
+      "value": "CN (default)"
     },
     {
       "name": "x509_username_field_summary",
@@ -1591,6 +1615,86 @@
     {
       "name": "profile_edit",
       "value": "Edit Profile"
+    },
+    {
+      "name": "profile_edit_connection_section",
+      "value": "Connection"
+    },
+    {
+      "name": "profile_edit_connection_hint",
+      "value": "Review the profile name and the server used for this connection."
+    },
+    {
+      "name": "profile_edit_credentials_section",
+      "value": "Sign-in"
+    },
+    {
+      "name": "profile_edit_credentials_hint",
+      "value": "Set an optional username and choose whether the password is stored on this device."
+    },
+    {
+      "name": "profile_edit_details_section",
+      "value": "Profile details"
+    },
+    {
+      "name": "profile_edit_details_hint",
+      "value": "Copy the identifier or open the full OpenVPN configuration."
+    },
+    {
+      "name": "profile_edit_actions_section",
+      "value": "Quick actions"
+    },
+    {
+      "name": "profile_edit_actions_hint",
+      "value": "Create a home-screen connection shortcut or configure a proxy server."
+    },
+    {
+      "name": "profile_edit_management_section",
+      "value": "Profile management"
+    },
+    {
+      "name": "profile_edit_management_hint",
+      "value": "Changes in this section can affect access to the profile."
+    },
+    {
+      "name": "profile_edit_locked_badge",
+      "value": "LOCKED"
+    },
+    {
+      "name": "profile_edit_locked_hint",
+      "value": "Edit the original server in Advanced settings > Server List."
+    },
+    {
+      "name": "profile_edit_override_placeholder",
+      "value": "Use the profile server"
+    },
+    {
+      "name": "profile_edit_override_hint",
+      "value": "When set, connections use this address without changing the server stored in the profile."
+    },
+    {
+      "name": "profile_edit_password_saved",
+      "value": "A password will be stored with this profile"
+    },
+    {
+      "name": "profile_edit_password_not_saved",
+      "value": "You will be asked for a password when required"
+    },
+    {
+      "name": "profile_edit_advanced_description",
+      "value": "Servers, certificates, DNS, routing, encryption, apps, and generated configuration"
+    },
+    {
+      "name": "profile_edit_shortcut_description",
+      "value": "Add a shortcut that starts this VPN profile directly from the home screen."
+    },
+    {
+      "name": "profile_edit_proxy_description",
+      "value": "Open Server List to choose HTTP or SOCKS5 and enter the proxy details."
+    },
+    {
+      "name": "profile_edit_delete_description",
+      "value": "Permanently remove this profile and its connection shortcut from this device."
     },
     {
       "name": "save",

@@ -50,7 +50,9 @@ struct ConfigConverter {
       parser.parseConfig(lines);
       let np = parser.convertProfile();
       this.profile = np;
-      this.name = this.uniqueName(np.mName === ConfigParser.CONVERTED_PROFILE ? '' : np.mName);
+      let fileName = params.fileName === undefined || params.fileName === null ? '' : params.fileName;
+      let possibleName = fileName.replace(/\.(ovpn|conf)$/i, '');
+      this.name = this.uniqueName(np.mName === ConfigParser.CONVERTED_PROFILE ? possibleName : np.mName);
       this.compatIdx = compatModeToIndex(np.mCompatMode);
       this.tlsProfile = np.mTlSCertProfile === '' ? 'legacy' : np.mTlSCertProfile;
       this.collectMissingFiles();

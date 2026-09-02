@@ -2,19 +2,19 @@
   "string": [
     {
       "name": "module_desc",
-      "value": "OpenVPN 客户端"
+      "value": "网络隧道工具"
     },
     {
       "name": "EntryAbility_desc",
-      "value": "OpenVPN 客户端"
+      "value": "网络隧道工具"
     },
     {
       "name": "EntryAbility_label",
-      "value": "OpenVPN"
+      "value": "Air VPN"
     },
     {
       "name": "app_name",
-      "value": "OpenVPN"
+      "value": "Air VPN"
     },
     {
       "name": "graph",

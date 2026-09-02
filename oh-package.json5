@@ -1,6 +1,6 @@
 {
   "modelVersion": "6.1.0",
-  "description": "OpenVPN client for HarmonyOS, ported from ics-openvpn",
+  "description": "Air VPN network tunnel toolkit for HarmonyOS",
   "dependencies": {
   },
   "devDependencies": {

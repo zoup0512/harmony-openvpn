@@ -1,0 +1,17 @@
+# tcp 转发示例
+# https://gofrp.org/zh-cn/docs/examples/ssh/
+serverAddr = "127.0.0.1"
+serverPort = 7000
+dnsServer = "114.114.114.114"
+loginFailExit = false
+
+[log]
+level = "debug"
+disablePrintColor = true
+
+[[proxies]]
+name = "ssh"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 22
+remotePort = 6000

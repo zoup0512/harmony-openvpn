@@ -2,19 +2,19 @@
   "string": [
     {
       "name": "module_desc",
-      "value": "OpenVPN client"
+      "value": "Network tunnel client"
     },
     {
       "name": "EntryAbility_desc",
-      "value": "OpenVPN client"
+      "value": "Network tunnel client"
     },
     {
       "name": "EntryAbility_label",
-      "value": "OpenVPN"
+      "value": "Air VPN"
     },
     {
       "name": "app_name",
-      "value": "OpenVPN for Harmony"
+      "value": "Air VPN"
     },
     {
       "name": "graph",

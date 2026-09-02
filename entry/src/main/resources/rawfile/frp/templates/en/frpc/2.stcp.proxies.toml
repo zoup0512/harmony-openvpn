@@ -1,0 +1,18 @@
+# stcp forwarding example - server side
+# https://gofrp.org/en/docs/examples/stcp/
+serverAddr = "127.0.0.1"
+serverPort = 7000
+dnsServer = "114.114.114.114"
+loginFailExit = false
+
+[log]
+level = "debug"
+disablePrintColor = true
+
+[[proxies]]
+name = "secret_ssh"
+type = "stcp"
+# Only users with a matching secretKey can access this service
+secretKey = "abcdefg"
+localIP = "127.0.0.1"
+localPort = 22

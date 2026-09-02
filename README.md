@@ -1,6 +1,6 @@
-# OpenVPN for HarmonyOS
+# Air VPN
 
-基于开源 Android 客户端 [ics-openvpn](https://github.com/schwabe/ics-openvpn/)（`_ref/ics-openvpn`）移植的 HarmonyOS（ArkTS/ArkUI）版本。
+面向 HarmonyOS 的网络隧道工具，统一提供 OpenVPN 配置连接与 FRP 配置管理能力；OpenVPN 功能源自开源 Android 客户端 [ics-openvpn](https://github.com/schwabe/ics-openvpn/)（`_ref/ics-openvpn`）的移植。
 
 - bundleName：`com.razor.tools.openvpn`
 - 目标版本：HarmonyOS 6.1.0 (API 23)（使用 DevEco Studio 6.1 构建，编译 SDK 24）

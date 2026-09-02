@@ -23,7 +23,7 @@ export struct AboutTab {
   build() {
     Scroll() {
       Column() {
-        Text(R.s('version_info', 'OpenVPN for Harmony', this.versionName))
+        Text(R.s('version_info', R.s('app_name'), this.versionName))
           .fontSize(22)
           .fontColor(Theme.TEXT_PRIMARY)
           .width('100%')

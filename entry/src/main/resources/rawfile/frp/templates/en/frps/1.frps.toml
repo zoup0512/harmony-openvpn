@@ -1,0 +1,11 @@
+# frps configuration example
+# https://gofrp.org/en/docs/examples/ssh/
+bindPort = 7000
+
+[log]
+level = "debug"
+disablePrintColor = true
+
+# It is recommended to use token for client authentication to prevent unauthorized frpc connections to frps
+# [auth]
+# token = ""

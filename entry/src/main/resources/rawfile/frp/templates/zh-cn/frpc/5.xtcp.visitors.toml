@@ -1,0 +1,24 @@
+# xtcp 转发示例 - 连接端
+# https://gofrp.org/zh-cn/docs/examples/xtcp/
+serverAddr = "127.0.0.1"
+serverPort = 7000
+dnsServer = "114.114.114.114"
+loginFailExit = false
+# 如果默认的 STUN 服务器不可用，可以配置一个新的 STUN 服务器
+# natHoleStunServer = "xxx"
+
+[log]
+level = "debug"
+disablePrintColor = true
+
+[[visitors]]
+name = "p2p_ssh_visitor"
+type = "xtcp"
+# 要访问的 P2P 代理的名称
+serverName = "p2p_ssh"
+secretKey = "abcdefg"
+# 绑定本地端口以访问 SSH 服务
+bindAddr = "127.0.0.1"
+bindPort = 6000
+# 如果需要自动保持隧道打开，将其设置为 true
+# keepTunnelOpen = false

@@ -11,9 +11,17 @@ import { VpnTrafficStore } from '../core/VpnTrafficStore';
 export class App {
   private static inited: boolean = false;
   static context?: common.Context = undefined;
+  static uiContext?: common.UIAbilityContext = undefined;
+
+  static setUiContext(context: common.UIAbilityContext): void {
+    App.uiContext = context;
+    App.init(context);
+  }
 
   static init(context: common.Context): void {
-    App.context = context;
+    if (App.context === undefined) {
+      App.context = context;
+    }
     if (App.inited) {
       return;
     }

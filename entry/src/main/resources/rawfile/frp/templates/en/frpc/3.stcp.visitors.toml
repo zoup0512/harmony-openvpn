@@ -1,0 +1,20 @@
+# stcp forwarding example - client side
+# https://gofrp.org/en/docs/examples/stcp/
+serverAddr = "127.0.0.1"
+serverPort = 7000
+dnsServer = "114.114.114.114"
+loginFailExit = false
+
+[log]
+level = "debug"
+disablePrintColor = true
+
+[[visitors]]
+name = "secret_ssh_visitor"
+type = "stcp"
+# Name of the stcp proxy to access
+serverName = "secret_ssh"
+secretKey = "abcdefg"
+# Local bind address/port to access the SSH service
+bindAddr = "127.0.0.1"
+bindPort = 6000

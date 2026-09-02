@@ -1,0 +1,6 @@
+{
+  "name": "libfrpglue.so",
+  "types": "./index.d.ts",
+  "version": "1.0.0",
+  "description": "NAPI bridge to the Go frpc core (libfrp_host.so)"
+}

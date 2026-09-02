@@ -12,6 +12,14 @@ import { FileUtil } from '../common/FileUtil';
 import { ImportASDialog } from '../components/dialogs/ImportASDialog';
 import { ImportSourceDialog } from '../components/dialogs/ImportSourceDialog';
 import { ProfilesTab } from '../components/tabs/ProfilesTab';
+import { FrpTab } from '../components/tabs/FrpTab';
+import { FrpTemplateDialog } from '../components/dialogs/FrpTemplateDialog';
+import { FrpConfigTemplate, FrpTemplateManager } from '../core/FrpTemplateManager';
+import { FrpConfig } from '../core/FrpConfig';
+import { FrpConfigManager } from '../core/FrpConfigManager';
+import { FrpType } from '../core/FrpType';
+import { FrpController } from '../frp/FrpController';
+import { showSingleChoice } from '../components/settings/SettingsCommon';
 import { InputDialog, InputDialogModel } from '../components/InputDialog';
 import { CredentialsDialog, CredentialsDialogModel } from '../components/CredentialsDialog';
 import { VpnController, PendingAuthChallenge } from '../vpn/VpnController';
@@ -21,6 +29,7 @@ import { ConnectionStatus, LogLevel } from '../core/LogItem';
 @Entry
 @Component
 struct Index {
+  @State private activeFeature: number = 0;
   private authTimerId: number = -1;
   private activeAuthExpiresAt: number = 0;
   private authDialogOpen: boolean = false;
@@ -55,11 +64,23 @@ struct Index {
     customStyle: true,
     alignment: DialogAlignment.Center
   });
+  private frpTemplateDialogController: CustomDialogController = new CustomDialogController({
+    builder: FrpTemplateDialog({
+      onSelected: (type: FrpType, template?: FrpConfigTemplate) => {
+        this.openNewFrpConfig(type, template);
+      }
+    }),
+    autoCancel: true,
+    customStyle: true,
+    alignment: DialogAlignment.Center
+  });
 
   aboutToAppear(): void {
     let ctx = this.getUIContext().getHostContext();
     if (ctx !== undefined) {
       R.init(ctx);
+      FrpConfigManager.init(ctx);
+      FrpTemplateManager.init(ctx);
     }
     this.authTimerId = setInterval(() => {
       this.checkPendingAuth();
@@ -225,9 +246,45 @@ struct Index {
     this.importSourceDialogController.open();
   }
 
+  private importFrpConfig(): void {
+    FileUtil.pickAndRead(['.toml']).then((file) => {
+      showSingleChoice('选择 FRP 配置类型', ['frpc 客户端', 'frps 服务端'], 0, (index: number) => {
+        let type = index === 0 ? FrpType.FRPC : FrpType.FRPS;
+        try {
+          let config = FrpConfigManager.importPickedFile(type, file);
+          promptAction.showToast({ message: `已导入 ${config.name}` });
+          router.pushUrl({ url: 'pages/FrpConfigEdit', params: { 'uuid': config.key } });
+        } catch (error) {
+          promptAction.showToast({ message: `导入失败：${(error as Error).message}` });
+        }
+      });
+    }).catch(() => {
+    });
+  }
+
+  private openNewFrpConfig(type: FrpType, template?: FrpConfigTemplate): void {
+    let params: Record<string, Object> = {
+      'new': true,
+      'type': type,
+      'templateFileName': template === undefined ? '' : template.fileName
+    };
+    router.pushUrl({ url: 'pages/FrpConfigEdit', params: params });
+  }
+
+  private showFrpTemplates(): void {
+    this.frpTemplateDialogController.open();
+  }
+
+  private startFrp(config: FrpConfig): Promise<void> {
+    return FrpController.start(config);
+  }
+
+  private stopFrp(config: FrpConfig): Promise<void> {
+    return FrpController.stop(config);
+  }
+
   build() {
     Column() {
-      // ---- Toolbar (replicates ActionBar + fragment menus) ----
       Row() {
         Text(R.s('app_name'))
           .fontSize(20)
@@ -237,26 +294,39 @@ struct Index {
           .layoutWeight(1)
           .padding({ left: 16 })
 
-        Image($r('app.media.ic_import'))
-          .width(24).height(24).fillColor(Color.White)
-          .margin({ left: 16 })
-          .onClick(() => {
-            this.showImportChoices();
-          })
-
-        Image($r('app.media.ic_chart'))
-          .width(24).height(24).fillColor(Color.White)
-          .margin({ left: 16 })
-          .onClick(() => {
-            router.pushUrl({ url: 'pages/TrafficStats' });
-          })
-
-        Image($r('app.media.ic_receipt'))
-          .width(24).height(24).fillColor(Color.White)
-          .margin({ left: 16 })
-          .onClick(() => {
-            router.pushUrl({ url: 'pages/LogWindow' });
-          })
+        if (this.activeFeature === 0) {
+          Image($r('app.media.ic_import'))
+            .width(24).height(24).fillColor(Color.White)
+            .margin({ left: 16 })
+            .onClick(() => {
+              this.showImportChoices();
+            })
+          Image($r('app.media.ic_chart'))
+            .width(24).height(24).fillColor(Color.White)
+            .margin({ left: 16 })
+            .onClick(() => {
+              router.pushUrl({ url: 'pages/TrafficStats' });
+            })
+          Image($r('app.media.ic_receipt'))
+            .width(24).height(24).fillColor(Color.White)
+            .margin({ left: 16 })
+            .onClick(() => {
+              router.pushUrl({ url: 'pages/LogWindow' });
+            })
+        } else {
+          Image($r('app.media.ic_add'))
+            .width(24).height(24).fillColor(Color.White)
+            .margin({ left: 16 })
+            .onClick(() => {
+              this.showFrpTemplates();
+            })
+          Image($r('app.media.ic_import'))
+            .width(24).height(24).fillColor(Color.White)
+            .margin({ left: 16 })
+            .onClick(() => {
+              this.importFrpConfig();
+            })
+        }
 
         Image($r('app.media.ic_info'))
           .width(24)
@@ -272,13 +342,69 @@ struct Index {
       .backgroundColor(Theme.PRIMARY)
       .alignItems(VerticalAlign.Center)
 
-      // ---- Content ----
-      ProfilesTab({
-        onImportProfile: () => {
-          this.importConfigFile();
+      Row() {
+        Column() {
+          Text('OpenVPN')
+            .fontSize(15)
+            .fontWeight(this.activeFeature === 0 ? FontWeight.Bold : FontWeight.Regular)
+            .fontColor(this.activeFeature === 0 ? Theme.PRIMARY : Theme.TEXT_SECONDARY)
+          Rect()
+            .width(54)
+            .height(3)
+            .fill(this.activeFeature === 0 ? Theme.ACCENT : Theme.TRANSPARENT)
+            .margin({ top: 8 })
         }
-      })
         .layoutWeight(1)
+        .height(48)
+        .justifyContent(FlexAlign.End)
+        .alignItems(HorizontalAlign.Center)
+        .onClick(() => {
+          this.activeFeature = 0;
+        })
+        Column() {
+          Text('FRP')
+            .fontSize(15)
+            .fontWeight(this.activeFeature === 1 ? FontWeight.Bold : FontWeight.Regular)
+            .fontColor(this.activeFeature === 1 ? Theme.PRIMARY : Theme.TEXT_SECONDARY)
+          Rect()
+            .width(54)
+            .height(3)
+            .fill(this.activeFeature === 1 ? Theme.ACCENT : Theme.TRANSPARENT)
+            .margin({ top: 8 })
+        }
+        .layoutWeight(1)
+        .height(48)
+        .justifyContent(FlexAlign.End)
+        .alignItems(HorizontalAlign.Center)
+        .onClick(() => {
+          this.activeFeature = 1;
+        })
+      }
+      .width('100%')
+      .height(48)
+      .backgroundColor(Theme.CARD_BG)
+      .border({ width: { bottom: 1 }, color: Theme.DIVIDER })
+
+      if (this.activeFeature === 0) {
+        ProfilesTab({
+          onImportProfile: () => {
+            this.importConfigFile();
+          }
+        })
+          .layoutWeight(1)
+      } else {
+        FrpTab({
+          onImport: () => {
+            this.importFrpConfig();
+          },
+          onNew: () => {
+            this.showFrpTemplates();
+          },
+          onStart: (config: FrpConfig) => this.startFrp(config),
+          onStop: (config: FrpConfig) => this.stopFrp(config)
+        })
+          .layoutWeight(1)
+      }
     }
     .width('100%')
     .height('100%')

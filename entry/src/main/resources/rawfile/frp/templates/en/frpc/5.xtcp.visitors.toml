@@ -1,0 +1,24 @@
+# xtcp forwarding example - client side
+# https://gofrp.org/en/docs/examples/xtcp/
+serverAddr = "127.0.0.1"
+serverPort = 7000
+dnsServer = "114.114.114.114"
+loginFailExit = false
+# If the default STUN server is unavailable, configure a new one
+# natHoleStunServer = "xxx"
+
+[log]
+level = "debug"
+disablePrintColor = true
+
+[[visitors]]
+name = "p2p_ssh_visitor"
+type = "xtcp"
+# Name of the P2P proxy to access
+serverName = "p2p_ssh"
+secretKey = "abcdefg"
+# Local bind address/port to access the SSH service
+bindAddr = "127.0.0.1"
+bindPort = 6000
+# Set to true to keep the tunnel open automatically if required
+# keepTunnelOpen = false

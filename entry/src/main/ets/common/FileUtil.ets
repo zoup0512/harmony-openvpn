@@ -4,6 +4,7 @@
  * ics-openvpn).
  */
 
+import { common } from '@kit.AbilityKit';
 import { picker } from '@kit.CoreFileKit';
 import fs from '@ohos.file.fs';
 import { util } from '@kit.ArkTS';
@@ -21,6 +22,43 @@ export class FileUtil {
       fs.writeSync(file.fd, text);
     } finally {
       fs.closeSync(file);
+    }
+  }
+
+  /** Writes through a same-directory temporary file before replacing the target. */
+  static writeTextAtomic(path: string, text: string): void {
+    let temporaryPath = `${path}.tmp-${Date.now()}`;
+    let backupPath = `${path}.bak-${Date.now()}`;
+    FileUtil.writeText(temporaryPath, text);
+    let hadOriginal = false;
+    try {
+      hadOriginal = fs.accessSync(path);
+      if (hadOriginal) {
+        fs.renameSync(path, backupPath);
+      }
+      fs.renameSync(temporaryPath, path);
+    } catch (replaceError) {
+      try {
+        if (hadOriginal && fs.accessSync(backupPath) && !fs.accessSync(path)) {
+          fs.renameSync(backupPath, path);
+        }
+      } catch (rollbackError) {
+      }
+      try {
+        if (fs.accessSync(temporaryPath)) {
+          fs.unlinkSync(temporaryPath);
+        }
+      } catch (cleanupError) {
+      }
+      throw new Error(`Atomic file replacement failed: ${String(replaceError)}`);
+    }
+    try {
+      if (hadOriginal && fs.accessSync(backupPath)) {
+        fs.unlinkSync(backupPath);
+      }
+    } catch (cleanupBackupError) {
+      // The new target is already committed; an orphan backup is harmless and
+      // can be cleaned up on the next write.
     }
   }
 
@@ -44,6 +82,32 @@ export class FileUtil {
         }
       }).catch((err: Error) => {
         reject(err);
+      });
+    });
+  }
+
+  /** Opens the system document saver and writes UTF-8 text to the selected URI. */
+  static saveText(fileName: string, text: string, suffix: string = '.txt',
+    context?: common.UIAbilityContext): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      let docPicker = context === undefined ? new picker.DocumentViewPicker() :
+        new picker.DocumentViewPicker(context);
+      let options = new picker.DocumentSaveOptions();
+      options.newFileNames = [fileName];
+      options.fileSuffixChoices = [suffix];
+      docPicker.save(options).then((uris: Array<string>) => {
+        if (uris === undefined || uris === null || uris.length === 0) {
+          reject(new Error('cancelled'));
+          return;
+        }
+        try {
+          FileUtil.writeText(uris[0], text);
+          resolve();
+        } catch (e) {
+          reject(e as Error);
+        }
+      }).catch((error: Error) => {
+        reject(error);
       });
     });
   }

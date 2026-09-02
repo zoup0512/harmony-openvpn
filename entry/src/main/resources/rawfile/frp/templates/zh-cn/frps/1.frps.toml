@@ -1,0 +1,11 @@
+# frps 配置示例
+# https://gofrp.org/zh-cn/docs/examples/ssh/
+bindPort = 7000
+
+[log]
+level = "debug"
+disablePrintColor = true
+
+# 推荐使用 token 进行客户端认证，防止未授权的frpc连接到frps
+# [auth]
+# token = ""

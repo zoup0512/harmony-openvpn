@@ -1,10 +1,15 @@
 import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
+import { util } from '@kit.ArkTS';
 import { App } from '../common/App';
 import { R } from '../common/Res';
+import { FrpConfigManager } from '../core/FrpConfigManager';
+import { FrpType } from '../core/FrpType';
 import { ProfileManager } from '../core/ProfileManager';
 import { VpnStatus } from '../core/VpnStatus';
+import { FrpController } from '../frp/FrpController';
+import { FrpRuntimeAdapter } from '../frp/FrpRuntimeAdapter';
 import { ConnectionStatus } from '../core/LogItem';
 import { VpnController } from '../vpn/VpnController';
 
@@ -14,6 +19,10 @@ const SHORTCUT_REASON = 'shortcut';
 const SHORTCUT_RETRY_COUNT = 4;
 const SHORTCUT_RETRY_DELAY_MS = 150;
 const SHORTCUT_DUPLICATE_WINDOW_MS = 2000;
+const FRP_START_PARAM = 'frp.start';
+const FRP_STOP_PARAM = 'frp.stop';
+const FRP_IMPORT_PARAM = 'frp.import';
+const FRP_CONTENT_PARAM = 'frp.content';
 
 const DOMAIN = 0x0000;
 
@@ -23,20 +32,26 @@ export default class EntryAbility extends UIAbility {
 
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
     this.context.getApplicationContext().setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET);
-    App.init(this.context);
+    App.setUiContext(this.context);
     R.init(this.context);
     hilog.info(DOMAIN, 'OpenVPN', '%{public}s', 'Ability onCreate');
     this.logWant('onCreate', want);
     this.healStaleVpnNotification();
     this.handleShortcutWant(want);
+    this.handleFrpStartWant(want);
+    this.handleFrpStopWant(want);
+    this.handleFrpImportWant(want);
   }
 
   onNewWant(want: Want, launchParam: AbilityConstant.LaunchParam): void {
-    App.init(this.context);
+    App.setUiContext(this.context);
     hilog.info(DOMAIN, 'OpenVPN', '%{public}s', 'Ability onNewWant');
     this.logWant('onNewWant', want);
     this.healStaleVpnNotification();
     this.handleShortcutWant(want);
+    this.handleFrpStartWant(want);
+    this.handleFrpStopWant(want);
+    this.handleFrpImportWant(want);
   }
 
   /**
@@ -130,6 +145,114 @@ export default class EntryAbility extends UIAbility {
     setTimeout(() => {
       ProfileManager.ensureLoaded();
       this.startShortcutVpn(uuid, attempt + 1);
+    }, SHORTCUT_RETRY_DELAY_MS);
+  }
+
+  /**
+   * Deep-link/testing entry: `aa start --ps frp.start <fileName>` starts one
+   * frpc configuration without UI interaction; `--ps frp.stop <fileName>`
+   * stops it.
+   */
+  private handleFrpStartWant(want: Want): void {
+    let fileName = EntryAbility.readStringParameter(want, FRP_START_PARAM);
+    if (fileName === undefined || fileName === '') {
+      return;
+    }
+    if (fileName === 'selftest') {
+      let rc = FrpRuntimeAdapter.selfTest();
+      hilog.info(DOMAIN, 'OpenVPN', 'FRP inline selftest rc=%{public}d', rc);
+      return;
+    }
+    hilog.info(DOMAIN, 'OpenVPN', 'FRP start requested via want: %{public}s', fileName);
+    this.startFrpByFileName(fileName, 0);
+  }
+
+  private handleFrpStopWant(want: Want): void {
+    let fileName = EntryAbility.readStringParameter(want, FRP_STOP_PARAM);
+    if (fileName === undefined || fileName === '') {
+      return;
+    }
+    hilog.info(DOMAIN, 'OpenVPN', 'FRP stop requested via want: %{public}s', fileName);
+    FrpConfigManager.init(this.context);
+    let normalized = fileName.endsWith('.toml') ? fileName : `${fileName}.toml`;
+    let config = FrpConfigManager.get(FrpType.FRPC, normalized);
+    if (config === undefined) {
+      hilog.error(DOMAIN, 'OpenVPN', 'FRP stop config not found: %{public}s', normalized);
+      return;
+    }
+    FrpController.stop(config).then(() => {
+      hilog.info(DOMAIN, 'OpenVPN', 'FRP stopped via want: %{public}s', normalized);
+    }).catch((error: Error) => {
+      hilog.error(DOMAIN, 'OpenVPN', 'FRP want stop failed: %{public}s', error.message);
+    });
+  }
+
+  /**
+   * Import (or overwrite) a frpc config from base64 TOML and start it right
+   * away: `aa start --ps frp.import <fileName> --ps frp.content <base64>`.
+   */
+  private handleFrpImportWant(want: Want): void {
+    let fileName = EntryAbility.readStringParameter(want, FRP_IMPORT_PARAM);
+    let encoded = EntryAbility.readStringParameter(want, FRP_CONTENT_PARAM);
+    if (fileName === undefined || fileName === '' || encoded === undefined || encoded === '') {
+      return;
+    }
+    let normalized = fileName.endsWith('.toml') ? fileName : `${fileName}.toml`;
+    let content = EntryAbility.decodeBase64(encoded);
+    if (content === '') {
+      hilog.error(DOMAIN, 'OpenVPN', 'FRP import decode failed: %{public}s', normalized);
+      return;
+    }
+    hilog.info(DOMAIN, 'OpenVPN', 'FRP import requested via want: %{public}s (%{public}d bytes)',
+      normalized, content.length);
+    FrpConfigManager.init(this.context);
+    let existing = FrpConfigManager.get(FrpType.FRPC, normalized);
+    if (existing !== undefined) {
+      let old = existing;
+      FrpController.stop(old).then(() => {
+        FrpConfigManager.remove(old);
+      }).catch(() => {
+        FrpConfigManager.remove(old);
+      });
+    }
+    let created = FrpConfigManager.importContent(FrpType.FRPC, normalized, content, '');
+    if (created === undefined) {
+      hilog.error(DOMAIN, 'OpenVPN', 'FRP import rejected: %{public}s', normalized);
+      return;
+    }
+    setTimeout(() => {
+      this.startFrpByFileName(normalized, 0);
+    }, 300);
+  }
+
+  private static decodeBase64(encoded: string): string {
+    try {
+      let helper = new util.Base64Helper();
+      let bytes = helper.decodeSync(encoded);
+      return new util.TextDecoder('utf-8').decodeToString(bytes);
+    } catch (e) {
+      return '';
+    }
+  }
+
+  private startFrpByFileName(fileName: string, attempt: number): void {
+    FrpConfigManager.init(this.context);
+    let normalized = fileName.endsWith('.toml') ? fileName : `${fileName}.toml`;
+    let config = FrpConfigManager.get(FrpType.FRPC, normalized);
+    if (config !== undefined) {
+      FrpController.start(config).then(() => {
+        hilog.info(DOMAIN, 'OpenVPN', 'FRP started via want: %{public}s', normalized);
+      }).catch((error: Error) => {
+        hilog.error(DOMAIN, 'OpenVPN', 'FRP want start failed: %{public}s', error.message);
+      });
+      return;
+    }
+    if (attempt >= SHORTCUT_RETRY_COUNT) {
+      hilog.error(DOMAIN, 'OpenVPN', 'FRP config not found after retries: %{public}s', normalized);
+      return;
+    }
+    setTimeout(() => {
+      this.startFrpByFileName(fileName, attempt + 1);
     }, SHORTCUT_RETRY_DELAY_MS);
   }
 

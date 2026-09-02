@@ -7,6 +7,8 @@
     "pages/ConfigConverter",
     "pages/About",
     "pages/Settings",
-    "pages/TrafficStats"
+    "pages/TrafficStats",
+    "pages/FrpConfigEdit",
+    "pages/FrpLog"
   ]
 }

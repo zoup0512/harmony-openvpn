@@ -61,3 +61,10 @@ target_link_libraries(ovpnexec PUBLIC
 target_link_options(ovpnexec PRIVATE -Wl,--gc-sections)
 
 set_target_properties(ovpnexec PROPERTIES CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON)
+
+# libfrpglue.so — NAPI bridge to the prebuilt Go frpc core shipped in
+# entry/libs/arm64-v8a/libfrp_host.so (built by native/frpc-host/build-ohos.sh).
+add_library(frpglue SHARED frp_napi.cpp)
+target_link_libraries(frpglue PUBLIC ace_napi.z)
+target_compile_options(frpglue PRIVATE -Wall -Wno-unused-parameter)
+set_target_properties(frpglue PROPERTIES CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON)

@@ -1,0 +1,20 @@
+# stcp 转发示例 - 连接端
+# https://gofrp.org/zh-cn/docs/examples/stcp/
+serverAddr = "127.0.0.1"
+serverPort = 7000
+dnsServer = "114.114.114.114"
+loginFailExit = false
+
+[log]
+level = "debug"
+disablePrintColor = true
+
+[[visitors]]
+name = "secret_ssh_visitor"
+type = "stcp"
+# 要访问的 stcp 代理的名字
+serverName = "secret_ssh"
+secretKey = "abcdefg"
+# 绑定本地端口以访问 SSH 服务
+bindAddr = "127.0.0.1"
+bindPort = 6000

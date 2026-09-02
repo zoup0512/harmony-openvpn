@@ -1,0 +1,23 @@
+serverAddr = "124.220.35.87"
+serverPort = 7000
+
+auth.method = "token"
+auth.token = "zxcZXC900512"
+
+webServer.addr = "0.0.0.0"
+webServer.port = 7400
+webServer.user = "zoup0512"
+webServer.password = "x121169225"
+webServer.pprofEnable = false
+
+# tls
+#transport.tls.certFile = "/etc/frp/ssl/client.crt"
+#transport.tls.keyFile = "/etc/frp/ssl/client.key"
+#transport.tls.trustedCaFile = "/etc/frp/ssl/ca.crt"
+
+[[proxies]]
+name = "RDP_131"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 3389
+remotePort = 4389

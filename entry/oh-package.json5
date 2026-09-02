@@ -1,7 +1,7 @@
 {
   "name": "entry",
   "version": "1.0.0",
-  "description": "OpenVPN client for HarmonyOS",
+  "description": "Air VPN network tunnel toolkit for HarmonyOS",
   "main": "",
   "author": "",
   "license": "GPL-2.0",

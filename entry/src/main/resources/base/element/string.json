@@ -41,6 +41,10 @@
       "value": "Cancel"
     },
     {
+      "name": "back",
+      "value": "Back"
+    },
+    {
       "name": "yes",
       "value": "Yes"
     },
@@ -1070,7 +1074,51 @@
     },
     {
       "name": "traffic_stats_summary",
-      "value": "Traffic is measured at the VPN tunnel and grouped by the device's local date. Download is shown in red and upload in blue."
+      "value": "Traffic is measured at the VPN tunnel and grouped by the device's local date."
+    },
+    {
+      "name": "traffic_current_session",
+      "value": "VPN traffic overview"
+    },
+    {
+      "name": "traffic_session_active",
+      "value": "Latest connected totals"
+    },
+    {
+      "name": "traffic_session_idle",
+      "value": "No active VPN session"
+    },
+    {
+      "name": "traffic_session_no_data",
+      "value": "No connected traffic to display"
+    },
+    {
+      "name": "traffic_download",
+      "value": "Download"
+    },
+    {
+      "name": "traffic_upload",
+      "value": "Upload"
+    },
+    {
+      "name": "traffic_by_profile",
+      "value": "Usage by profile"
+    },
+    {
+      "name": "traffic_profile_id",
+      "value": "Profile ID"
+    },
+    {
+      "name": "traffic_no_history",
+      "value": "No traffic recorded in the last 7 days"
+    },
+    {
+      "name": "traffic_empty_title",
+      "value": "No traffic data yet"
+    },
+    {
+      "name": "traffic_date_short",
+      "value": "%1$s/%2$s"
     },
     {
       "name": "traffic_today",

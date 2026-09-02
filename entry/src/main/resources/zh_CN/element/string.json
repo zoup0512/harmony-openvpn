@@ -41,6 +41,10 @@
       "value": "取消"
     },
     {
+      "name": "back",
+      "value": "返回"
+    },
+    {
       "name": "yes",
       "value": "是"
     },
@@ -1070,7 +1074,51 @@
     },
     {
       "name": "traffic_stats_summary",
-      "value": "流量按 VPN 隧道统计，并按设备本地日期归档。下载以红色显示，上传以蓝色显示。"
+      "value": "流量按 VPN 隧道统计，并按设备本地日期归档。"
+    },
+    {
+      "name": "traffic_current_session",
+      "value": "VPN 流量概览"
+    },
+    {
+      "name": "traffic_session_active",
+      "value": "最近连接流量总计"
+    },
+    {
+      "name": "traffic_session_idle",
+      "value": "当前没有活动的 VPN 会话"
+    },
+    {
+      "name": "traffic_session_no_data",
+      "value": "当前暂无已连接流量"
+    },
+    {
+      "name": "traffic_download",
+      "value": "下载"
+    },
+    {
+      "name": "traffic_upload",
+      "value": "上传"
+    },
+    {
+      "name": "traffic_by_profile",
+      "value": "按配置统计"
+    },
+    {
+      "name": "traffic_profile_id",
+      "value": "配置 ID"
+    },
+    {
+      "name": "traffic_no_history",
+      "value": "最近 7 天暂无流量记录"
+    },
+    {
+      "name": "traffic_empty_title",
+      "value": "暂无流量数据"
+    },
+    {
+      "name": "traffic_date_short",
+      "value": "%1$s月%2$s日"
     },
     {
       "name": "traffic_today",

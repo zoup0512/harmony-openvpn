@@ -16,8 +16,13 @@ export class Theme {
   static readonly TEXT_PRIMARY: string = '#DE000000';
   static readonly TEXT_SECONDARY: string = '#8A000000';
   static readonly TEXT_DISABLED: string = '#42000000';
-  static readonly DATA_IN: string = '#FF0000';
-  static readonly DATA_OUT: string = '#0000FF';
+  static readonly DATA_IN: string = '#007F73';
+  static readonly DATA_OUT: string = '#5B45C6';
+  static readonly DATA_IN_BG: string = '#E6F5F2';
+  static readonly DATA_OUT_BG: string = '#EEEBFC';
+  static readonly DATA_TRACK_BG: string = '#E7E9EF';
+  static readonly SURFACE_SUBTLE: string = '#F7F8FC';
+  static readonly INFO_SURFACE: string = '#EAF1FC';
   static readonly WARNING_RED: string = '#FF0000';
   static readonly DIVIDER: string = '#1F000000';
   static readonly TRANSPARENT: string = '#00000000';

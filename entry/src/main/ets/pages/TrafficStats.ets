@@ -15,19 +15,29 @@ struct TrafficStats {
     Column() {
       // ---- Toolbar ----
       Row() {
-        Image($r('app.media.ic_back'))
-          .width(24).height(24).fillColor(Color.White)
-          .margin({ left: 12 })
-          .onClick(() => {
-            router.back();
-          })
-        Text(R.s('graph'))
+        Button() {
+          Image($r('app.media.ic_back'))
+            .width(24)
+            .height(24)
+            .fillColor(Color.White)
+        }
+        .width(48)
+        .height(48)
+        .padding(0)
+        .borderRadius(24)
+        .backgroundColor(Theme.TRANSPARENT)
+        .margin({ left: 4 })
+        .accessibilityText(R.s('back'))
+        .onClick(() => {
+          router.back();
+        })
+        Text(R.s('traffic_stats_title'))
           .fontSize(18)
           .fontColor(Color.White)
           .fontWeight(FontWeight.Medium)
           .maxLines(1)
           .layoutWeight(1)
-          .padding({ left: 12 })
+          .padding({ left: 4, right: 16 })
       }
       .width('100%')
       .height(56)

@@ -41,6 +41,25 @@ export class Theme {
   static readonly STATUS_IDLE_BG: string = '#0F000000';
   static readonly NOTICE_LIGHT_BG: string = '#1AF5821F';
 
+  // Light palette dedicated to FRP configuration pages.
+  static readonly FRP_PAGE_BG: string = '#F6F7F9';
+  static readonly FRP_ACCENT: string = '#0B9D76';
+  static readonly FRP_CARD_BG: string = '#FFFFFF';
+  static readonly FRP_INPUT_BG: string = '#F1F3F5';
+  static readonly FRP_BORDER: string = '#E2E6EA';
+  static readonly FRP_TEXT_PRIMARY: string = '#18201E';
+  static readonly FRP_TEXT_SECONDARY: string = '#66706D';
+  static readonly FRP_ACTION_BG: string = '#E7F5F0';
+  static readonly FRP_DANGER: string = '#D92D20';
+  static readonly FRP_DANGER_BG: string = '#FDECEB';
+  static readonly FRP_TOML_BG: string = '#101513';
+  static readonly FRP_TOML_TEXT: string = '#63D6A7';
+  static readonly FRP_CARD_RADIUS: number = 16;
+  static readonly FRP_INPUT_RADIUS: number = 10;
+  static readonly FRP_BUTTON_RADIUS: number = 10;
+  static readonly FRP_ACTION_RADIUS: number = 12;
+  static readonly FRP_CHIP_RADIUS: number = 20;
+
   // Dark palette used by the VPN profile preference cards.
   static readonly DARK_BACKGROUND: string = '#151B1C';
   static readonly DARK_TOOLBAR: string = '#1E3862';

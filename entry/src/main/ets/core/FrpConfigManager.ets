@@ -94,9 +94,19 @@ export class FrpConfigManager {
     if (!validation.valid) {
       throw new Error(validation.message);
     }
-    FileUtil.writeTextAtomic(config.getConfigPath(FrpConfigManager.rootPath()), content);
+    let path = config.getConfigPath(FrpConfigManager.rootPath());
+    FileUtil.writeTextAtomic(path, content);
     FrpConfigManager.configs.set(config.key, config);
-    FrpConfigManager.persistMetadata();
+    if (!FrpConfigManager.persistMetadata()) {
+      FrpConfigManager.configs.delete(config.key);
+      try {
+        if (fs.accessSync(path)) {
+          fs.unlinkSync(path);
+        }
+      } catch (cleanupError) {
+      }
+      throw new Error('Configuration metadata could not be saved.');
+    }
     return config;
   }
 
@@ -112,9 +122,19 @@ export class FrpConfigManager {
     if (FrpConfigManager.configs.has(config.key) || FrpConfigManager.fileAt(type, safeName) !== '') {
       throw new Error(`Configuration already exists: ${safeName}`);
     }
-    FileUtil.writeTextAtomic(config.getConfigPath(FrpConfigManager.rootPath()), content);
+    let path = config.getConfigPath(FrpConfigManager.rootPath());
+    FileUtil.writeTextAtomic(path, content);
     FrpConfigManager.configs.set(config.key, config);
-    FrpConfigManager.persistMetadata();
+    if (!FrpConfigManager.persistMetadata()) {
+      FrpConfigManager.configs.delete(config.key);
+      try {
+        if (fs.accessSync(path)) {
+          fs.unlinkSync(path);
+        }
+      } catch (cleanupError) {
+      }
+      throw new Error('Configuration metadata could not be saved.');
+    }
     return config;
   }
 
@@ -138,10 +158,21 @@ export class FrpConfigManager {
     if (known === undefined) {
       return new FrpValidationResult(false, ['Configuration is not managed by FrpConfigManager.']);
     }
-    FileUtil.writeTextAtomic(config.getConfigPath(FrpConfigManager.rootPath()), content);
+    let path = config.getConfigPath(FrpConfigManager.rootPath());
+    let previousContent = FrpConfigManager.read(config);
+    let previousUpdatedAt = known.updatedAt;
+    FileUtil.writeTextAtomic(path, content);
     config.updatedAt = Date.now();
     known.updatedAt = config.updatedAt;
-    FrpConfigManager.persistMetadata();
+    if (!FrpConfigManager.persistMetadata()) {
+      try {
+        FileUtil.writeTextAtomic(path, previousContent);
+      } catch (restoreError) {
+      }
+      config.updatedAt = previousUpdatedAt;
+      known.updatedAt = previousUpdatedAt;
+      return new FrpValidationResult(false, ['Configuration metadata could not be saved.'], validation.warnings);
+    }
     return validation;
   }
 
@@ -173,13 +204,33 @@ export class FrpConfigManager {
     }
     let oldLogPath = config.getLogPath(FrpConfigManager.rootPath());
     let newLogPath = `${FrpConfigManager.rootPath()}/logs/${config.type}/${FrpConfig.removeExtension(safeName)}.log`;
-    fs.renameSync(oldPath, newPath);
-    if (oldLogPath !== newLogPath && fs.accessSync(oldLogPath)) {
-      if (!fs.accessSync(newLogPath)) {
+    if (oldLogPath !== newLogPath && fs.accessSync(oldLogPath) && fs.accessSync(newLogPath)) {
+      throw new Error(`Log file already exists: ${newLogPath}`);
+    }
+    let configMoved = false;
+    let logMoved = false;
+    try {
+      fs.renameSync(oldPath, newPath);
+      configMoved = true;
+      if (oldLogPath !== newLogPath && fs.accessSync(oldLogPath)) {
         fs.renameSync(oldLogPath, newLogPath);
-      } else {
-        fs.unlinkSync(oldLogPath);
+        logMoved = true;
       }
+    } catch (moveError) {
+      try {
+        if (logMoved && fs.accessSync(newLogPath) && !fs.accessSync(oldLogPath)) {
+          fs.renameSync(newLogPath, oldLogPath);
+        }
+      } catch (logRollbackError) {
+      }
+      try {
+        if (configMoved && fs.accessSync(newPath) && !fs.accessSync(oldPath)) {
+          fs.renameSync(newPath, oldPath);
+        }
+      } catch (configRollbackError) {
+      }
+      let moveMessage = moveError instanceof Error ? moveError.message : String(moveError);
+      throw new Error(moveMessage);
     }
     let wasAutoStart = config.autoStart;
     let oldKey = config.key;
@@ -190,7 +241,26 @@ export class FrpConfigManager {
     config.autoStart = wasAutoStart;
     FrpStatus.rename(oldKey, config);
     FrpConfigManager.configs.set(config.key, config);
-    FrpConfigManager.persistMetadata();
+    if (!FrpConfigManager.persistMetadata()) {
+      FrpConfigManager.configs.delete(config.key);
+      config.fileName = oldKey.substring(oldKey.indexOf(':') + 1);
+      config.id = oldKey;
+      FrpConfigManager.configs.set(oldKey, config);
+      FrpStatus.rename(targetKey, config);
+      try {
+        if (fs.accessSync(newPath) && !fs.accessSync(oldPath)) {
+          fs.renameSync(newPath, oldPath);
+        }
+      } catch (configRollbackError) {
+      }
+      try {
+        if (logMoved && fs.accessSync(newLogPath) && !fs.accessSync(oldLogPath)) {
+          fs.renameSync(newLogPath, oldLogPath);
+        }
+      } catch (logRollbackError) {
+      }
+      throw new Error('Configuration metadata could not be saved.');
+    }
     return config;
   }
 
@@ -236,11 +306,19 @@ export class FrpConfigManager {
     if (known === undefined || !FrpConfigManager.fileExists(known)) {
       return false;
     }
+    let previousAutoStart = known.autoStart;
+    let previousUpdatedAt = known.updatedAt;
     known.autoStart = enabled;
     known.updatedAt = Date.now();
     config.autoStart = enabled;
     config.updatedAt = known.updatedAt;
-    FrpConfigManager.persistMetadata();
+    if (!FrpConfigManager.persistMetadata()) {
+      known.autoStart = previousAutoStart;
+      known.updatedAt = previousUpdatedAt;
+      config.autoStart = previousAutoStart;
+      config.updatedAt = previousUpdatedAt;
+      return false;
+    }
     return true;
   }
 
@@ -377,9 +455,9 @@ export class FrpConfigManager {
     }
   }
 
-  private static persistMetadata(): void {
+  private static persistMetadata(): boolean {
     if (FrpConfigManager.context === undefined) {
-      return;
+      return false;
     }
     try {
         FrpConfigManager.ensureDirectory(FrpConfigManager.rootPath());
@@ -395,8 +473,9 @@ export class FrpConfigManager {
         'configs': entries
       };
       FileUtil.writeTextAtomic(FrpConfigManager.metadataPath(), JSON.stringify(raw));
+      return true;
     } catch (e) {
-      // Configuration files remain usable if index persistence fails.
+      return false;
     }
   }
 }

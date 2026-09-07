@@ -9,6 +9,7 @@
     "pages/Settings",
     "pages/TrafficStats",
     "pages/FrpConfigEdit",
-    "pages/FrpLog"
+    "pages/FrpLog",
+    "pages/FrpConfigShare"
   ]
 }

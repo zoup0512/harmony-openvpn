@@ -6,6 +6,9 @@
  */
 
 import { router, promptAction } from '@kit.ArkUI';
+import { common } from '@kit.AbilityKit';
+import { pasteboard } from '@kit.BasicServicesKit';
+import { FileUtil } from '../../common/FileUtil';
 import { Theme } from '../../common/Theme';
 import { FrpConfig } from '../../core/FrpConfig';
 import { FrpConfigManager } from '../../core/FrpConfigManager';
@@ -40,7 +43,7 @@ export struct FrpTab {
 
   private deleteDialogModel: ConfirmDialogModel = new ConfirmDialogModel();
   private deleteDialogController: CustomDialogController = new CustomDialogController({
-    builder: ConfirmDialog({ model: this.deleteDialogModel, darkMode: true }),
+    builder: ConfirmDialog({ model: this.deleteDialogModel, darkMode: false }),
     autoCancel: true,
     customStyle: true
   });
@@ -55,6 +58,10 @@ export struct FrpTab {
     this.reload();
     this.timerId = setInterval(() => {
       FrpStatus.restoreFromDisk();
+      // 子页面返回时同步名称、复制与删除结果；稳定 key 不重建卡片。
+      let all = FrpConfigManager.list();
+      this.frpcConfigs = all.filter((config: FrpConfig) => config.type === FrpType.FRPC);
+      this.frpsConfigs = all.filter((config: FrpConfig) => config.type === FrpType.FRPS);
       this.renderTick++;
     }, 1000) as number;
   }
@@ -78,11 +85,11 @@ export struct FrpTab {
     this.onRefresh();
   }
 
-  private status(config: FrpConfig): FrpStatusSnapshot {
+  private status(config: FrpConfig, revision: number = 0): FrpStatusSnapshot {
     return FrpStatus.get(config);
   }
 
-  private isActive(config: FrpConfig): boolean {
+  private isActive(config: FrpConfig, revision: number = 0): boolean {
     return FrpStatus.isActive(this.status(config).state);
   }
 
@@ -139,7 +146,7 @@ export struct FrpTab {
     return value;
   }
 
-  private latestLogs(config: FrpConfig): FrpLogEntry[] {
+  private latestLogs(config: FrpConfig, revision: number = 0): FrpLogEntry[] {
     let all = FrpLogStore.read(config, 4);
     return all.slice(Math.max(0, all.length - 4));
   }
@@ -255,6 +262,60 @@ export struct FrpTab {
     router.pushUrl({ url: 'pages/FrpConfigEdit', params: { 'uuid': config.key } });
   }
 
+  private async saveConfig(config: FrpConfig): Promise<void> {
+    try {
+      let content = FrpConfigManager.read(config);
+      if (content === '') {
+        throw new Error('配置为空或无法读取');
+      }
+      await FileUtil.saveText(config.fileName, content, '.toml',
+        this.getUIContext().getHostContext() as common.UIAbilityContext);
+      promptAction.showToast({ message: '配置已保存到手机' });
+    } catch (error) {
+      if ((error as Error).message !== 'cancelled') {
+        promptAction.showToast({ message: `保存失败：${(error as Error).message}` });
+      }
+    } finally {
+      this.reload();
+    }
+  }
+
+  private copyConfig(config: FrpConfig): void {
+    try {
+      // 使用安全的独立文件名，刷新索引后顺延编号，绝不覆盖原配置。
+      let all = FrpConfigManager.refresh();
+      let base = FrpConfig.removeExtension(config.fileName).substring(0, 100);
+      let index = 1;
+      let fileName = `${base}_copy.toml`;
+      while (all.some((item: FrpConfig) => item.type === config.type && item.fileName === fileName)) {
+        index++;
+        fileName = `${base}_copy_${index}.toml`;
+      }
+      FrpConfigManager.copy(config, fileName, `${config.name} 副本${index === 1 ? '' : ` ${index}`}`);
+      promptAction.showToast({ message: '已创建配置副本（自启动关闭）' });
+    } catch (error) {
+      promptAction.showToast({ message: `复制失败：${(error as Error).message}` });
+    } finally {
+      this.reload();
+    }
+  }
+
+  private shareConfig(config: FrpConfig): void {
+    router.pushUrl({ url: 'pages/FrpConfigShare', params: { 'uuid': config.key } });
+    this.reload();
+  }
+
+  private copyLog(config: FrpConfig): void {
+    let text = FrpLogStore.readText(config);
+    if (text === '') {
+      promptAction.showToast({ message: '暂无可复制日志' });
+      return;
+    }
+    pasteboard.getSystemPasteboard().setData(pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, text))
+      .then(() => promptAction.showToast({ message: '日志已复制' }))
+      .catch(() => promptAction.showToast({ message: '日志复制失败' }));
+  }
+
   private showLog(config: FrpConfig): void {
     router.pushUrl({ url: 'pages/FrpLog', params: { 'uuid': config.key } });
   }
@@ -282,6 +343,12 @@ export struct FrpTab {
     this.deleteDialogModel.onConfirm = () => {
       let target = this.pendingDelete;
       this.pendingDelete = undefined;
+      FrpStatus.restoreFromDisk();
+      if (target !== undefined && this.isActive(target)) {
+        promptAction.showToast({ message: '配置运行中，停止后才能删除' });
+        this.reload();
+        return;
+      }
       if (target !== undefined && FrpConfigManager.remove(target)) {
         this.reload();
         promptAction.showToast({ message: '配置已删除' });
@@ -292,7 +359,7 @@ export struct FrpTab {
     this.deleteDialogController.open();
   }
 
-  private countActive(items: FrpConfig[]): number {
+  private countActive(items: FrpConfig[], revision: number): number {
     let count = 0;
     for (let config of items) {
       if (this.isActive(config)) {
@@ -302,7 +369,7 @@ export struct FrpTab {
     return count;
   }
 
-  private countErrors(items: FrpConfig[]): number {
+  private countErrors(items: FrpConfig[], revision: number): number {
     let count = 0;
     for (let config of items) {
       let state = this.status(config).state;
@@ -331,10 +398,10 @@ export struct FrpTab {
         Text('运行中')
           .fontSize(12)
           .fontColor(Theme.TEXT_SECONDARY)
-        Text(`${this.countActive(this.frpcConfigs) + this.countActive(this.frpsConfigs)}`)
+        Text(`${this.countActive(this.frpcConfigs, this.renderTick) + this.countActive(this.frpsConfigs, this.renderTick)}`)
           .fontSize(22)
           .fontWeight(FontWeight.Bold)
-          .fontColor(this.countActive(this.frpcConfigs) + this.countActive(this.frpsConfigs) > 0 ?
+          .fontColor(this.countActive(this.frpcConfigs, this.renderTick) + this.countActive(this.frpsConfigs, this.renderTick) > 0 ?
             Theme.STATUS_SUCCESS : Theme.TEXT_PRIMARY)
           .margin({ top: 2 })
       }
@@ -343,10 +410,10 @@ export struct FrpTab {
         Text('异常')
           .fontSize(12)
           .fontColor(Theme.TEXT_SECONDARY)
-        Text(`${this.countErrors(this.frpcConfigs) + this.countErrors(this.frpsConfigs)}`)
+        Text(`${this.countErrors(this.frpcConfigs, this.renderTick) + this.countErrors(this.frpsConfigs, this.renderTick)}`)
           .fontSize(22)
           .fontWeight(FontWeight.Bold)
-          .fontColor(this.countErrors(this.frpcConfigs) + this.countErrors(this.frpsConfigs) > 0 ?
+          .fontColor(this.countErrors(this.frpcConfigs, this.renderTick) + this.countErrors(this.frpsConfigs, this.renderTick) > 0 ?
             Theme.STATUS_ERROR : Theme.TEXT_PRIMARY)
           .margin({ top: 2 })
       }
@@ -360,155 +427,112 @@ export struct FrpTab {
   }
 
   @Builder
-  private ConfigCard(config: FrpConfig) {
-    Row() {
-      Toggle({ type: ToggleType.Switch, isOn: this.isActive(config) })
-        .width(48)
-        .height(28)
-        .selectedColor(Theme.ACCENT)
-        .onChange((enabled: boolean) => {
-          this.handleToggle(config, enabled);
-        })
-        .margin({ right: 12 })
-
-      Column() {
+  private ActionButton(icon: Resource, label: string, selected: boolean, danger: boolean,
+    action: () => void, enabled: boolean = true) {
+    Button({ type: ButtonType.Normal }) {
+      Column({ space: 2 }) {
         Row() {
-          Text(config.name)
-            .fontSize(16)
-            .fontWeight(FontWeight.Medium)
-            .fontColor(Theme.TEXT_PRIMARY)
-            .maxLines(1)
-            .textOverflow({ overflow: TextOverflow.Ellipsis })
-            .layoutWeight(1)
-          Text(this.statusLabel(this.status(config).state))
-            .fontSize(11)
-            .fontWeight(FontWeight.Medium)
-            .fontColor(this.statusColor(this.status(config).state))
-            .padding({ left: 8, right: 8, top: 3, bottom: 3 })
-            .backgroundColor(this.statusBackground(this.status(config).state))
-            .borderRadius(10)
+          Image(icon).width(18).height(18).objectFit(ImageFit.Contain)
+            .fillColor(!enabled ? Theme.TEXT_DISABLED :
+              (selected ? Theme.WHITE : (danger ? Theme.FRP_DANGER : Theme.FRP_ACCENT)))
         }
-        .width('100%')
-        Text(`${this.typeLabel(config.type)} · ${config.fileName}`)
-          .fontSize(12)
-          .fontFamily('monospace')
-          .fontColor(Theme.TEXT_SECONDARY)
-          .maxLines(1)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
-          .width('100%')
-          .margin({ top: 5 })
-        if (this.status(config).message !== '') {
-          Text(this.shortMessage(this.status(config).message))
-            .fontSize(12)
-            .fontColor(this.statusColor(this.status(config).state))
-            .maxLines(2)
-            .textOverflow({ overflow: TextOverflow.Ellipsis })
-            .width('100%')
-            .margin({ top: 5 })
-        }
+        .width('100%').height(20)
+        .justifyContent(FlexAlign.Center).alignItems(VerticalAlign.Center)
+        Text(label).fontSize(10).maxLines(1)
+          .width('100%').height(14).lineHeight(14).textAlign(TextAlign.Center)
+          .fontColor(!enabled ? Theme.TEXT_DISABLED :
+            (selected ? Theme.WHITE : (danger ? Theme.FRP_DANGER : Theme.FRP_ACCENT)))
       }
-      .layoutWeight(1)
-      .alignItems(HorizontalAlign.Start)
-      .onClick(() => {
-        this.toggleExpanded(config);
-      })
-
-      Column() {
-        Text('编辑')
-          .fontSize(12)
-          .fontColor(this.isActive(config) ? Theme.TEXT_DISABLED : Theme.PRIMARY)
-          .onClick(() => {
-            if (!this.isActive(config)) {
-              this.edit(config);
-            }
-          })
-        Text(this.isExpanded(config) ? '⌃' : '⌄')
-          .fontSize(18)
-          .fontColor(Theme.TEXT_SECONDARY)
-          .margin({ top: 3 })
-          .onClick(() => {
-            this.toggleExpanded(config);
-          })
-      }
-      .width(48)
+      .width('100%').height('100%')
       .justifyContent(FlexAlign.Center)
       .alignItems(HorizontalAlign.Center)
     }
-    .width('100%')
-    .padding(12)
-    .alignItems(VerticalAlign.Center)
-    .backgroundColor(Theme.CARD_BG)
-    .border({ width: 1, color: Theme.DIVIDER })
-    .borderRadius(12)
-    .margin({ top: 8 })
-
-    if (this.isExpanded(config)) {
-      Column() {
-        Row() {
-          Text('最近日志')
-            .fontSize(13)
-            .fontWeight(FontWeight.Medium)
-            .fontColor(Theme.TEXT_PRIMARY)
-            .layoutWeight(1)
-          Text('查看全部')
-            .fontSize(12)
-            .fontColor(Theme.PRIMARY)
-            .onClick(() => {
-              this.showLog(config);
-            })
-          Text('清除')
-            .fontSize(12)
-            .fontColor(Theme.STATUS_ERROR)
-            .margin({ left: 14 })
-            .onClick(() => {
-              this.clearLog(config);
-            })
-        }
-        .width('100%')
-        if (this.latestLogs(config).length === 0) {
-          Text('暂无日志')
-            .fontSize(12)
-            .fontColor(Theme.TEXT_SECONDARY)
-            .width('100%')
-            .margin({ top: 8 })
-        } else {
-          ForEach(this.latestLogs(config), (entry: FrpLogEntry) => {
-            Text(this.logText(entry))
-              .fontSize(12)
-              .fontFamily('monospace')
-              .fontColor(entry.level === 'ERROR' ? Theme.STATUS_ERROR : Theme.TEXT_SECONDARY)
-              .maxLines(2)
-              .textOverflow({ overflow: TextOverflow.Ellipsis })
-              .width('100%')
-              .margin({ top: 5 })
-          }, (entry: FrpLogEntry, index?: number) => `${entry.timestamp}-${index}`)
-        }
-        Row() {
-          Text('删除配置')
-            .fontSize(12)
-            .fontColor(this.isActive(config) ? Theme.TEXT_DISABLED : Theme.STATUS_ERROR)
-            .onClick(() => {
-              this.askDelete(config);
-            })
-          Blank()
-          Text(config.autoStart ? '自启动已开启' : '自启动未开启')
-            .fontSize(12)
-            .fontColor(Theme.TEXT_SECONDARY)
-        }
-        .width('100%')
-        .margin({ top: 12 })
-      }
-      .width('100%')
-      .padding({ left: 16, right: 16, top: 10, bottom: 12 })
-      .backgroundColor('#FAFAFA')
-      .border({ width: { left: 1, right: 1, bottom: 1 }, color: Theme.DIVIDER })
-      .borderRadius({ bottomLeft: 12, bottomRight: 12 })
-    }
+    .layoutWeight(1)
+    .constraintSize({ maxWidth: 40 })
+    .height(40)
+    .padding(0)
+    .borderRadius(8)
+    .backgroundColor(selected ? Theme.FRP_ACCENT :
+      (danger ? Theme.FRP_DANGER_BG : Theme.FRP_ACTION_BG))
+    .enabled(enabled)
+    .accessibilityText(label)
+    .accessibilityDescription(selected ? `${label}，已选中` : label)
+    .onClick(action)
   }
 
   @Builder
-  private ConfigGroup(title: string, configs: FrpConfig[]) {
-    if (configs.length > 0) {
+  private ConfigCard(config: FrpConfig) {
+    Column({ space: 12 }) {
+      Row({ space: 8 }) {
+        Column({ space: 5 }) {
+          Text(config.name)
+            .fontSize(17).fontWeight(FontWeight.Medium).fontColor(Theme.FRP_TEXT_PRIMARY)
+            .maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis })
+          Text(`${this.typeLabel(config.type)} · ${config.fileName}`)
+            .fontSize(12).fontColor(Theme.FRP_TEXT_SECONDARY)
+            .maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis })
+        }.layoutWeight(1).alignItems(HorizontalAlign.Start)
+        Text(this.statusLabel(this.status(config, this.renderTick).state))
+          .fontSize(11).fontColor(this.statusColor(this.status(config, this.renderTick).state))
+          .padding({ left: 8, right: 8, top: 4, bottom: 4 })
+          .backgroundColor(this.statusBackground(this.status(config, this.renderTick).state))
+          .borderRadius(Theme.FRP_CHIP_RADIUS)
+      }.width('100%')
+      if (this.status(config, this.renderTick).message !== '') {
+        Text(this.shortMessage(this.status(config, this.renderTick).message))
+          .fontSize(12).fontColor(this.statusColor(this.status(config, this.renderTick).state))
+          .width('100%').maxLines(2).textOverflow({ overflow: TextOverflow.Ellipsis })
+      }
+      if (config.type === FrpType.FRPS) {
+        Text('当前核心仅支持运行 frpc；frps 配置管理可用')
+          .fontSize(11).fontColor(Theme.FRP_TEXT_SECONDARY).width('100%')
+      }
+      Row({ space: 4 }) {
+        this.ActionButton(this.isActive(config, this.renderTick) ? $r('app.media.ic_frp_stop') : $r('app.media.ic_frp_play'),
+          this.isActive(config, this.renderTick) ? '停止' : '启动', this.isActive(config, this.renderTick), false,
+          () => this.handleToggle(config, !this.isActive(config)),
+          this.status(config, this.renderTick).state !== FrpRunState.STARTING &&
+          this.status(config, this.renderTick).state !== FrpRunState.STOPPING)
+        this.ActionButton($r('app.media.ic_frp_edit'), '编辑', false, false, () => this.edit(config), !this.isActive(config, this.renderTick))
+        this.ActionButton($r('app.media.ic_frp_log'), '日志', this.isExpanded(config), false, () => this.toggleExpanded(config))
+        this.ActionButton($r('app.media.ic_frp_save'), '保存', false, false, () => { this.saveConfig(config); })
+        this.ActionButton($r('app.media.ic_frp_share'), '分享', false, false, () => this.shareConfig(config))
+        this.ActionButton($r('app.media.ic_frp_copy'), '复制', false, false, () => this.copyConfig(config))
+        this.ActionButton($r('app.media.ic_frp_delete'), '删除', false, true, () => this.askDelete(config), !this.isActive(config, this.renderTick))
+      }.width('100%').justifyContent(FlexAlign.Center)
+      if (this.isExpanded(config)) {
+        Column({ space: 8 }) {
+          Row({ space: 8 }) {
+            Text('最近日志').fontSize(13).fontColor(Theme.FRP_TOML_TEXT).layoutWeight(1)
+            Button('全部').fontSize(11).height(32).backgroundColor(Theme.TRANSPARENT)
+              .fontColor(Theme.FRP_TOML_TEXT).onClick(() => this.showLog(config))
+            Button('复制').fontSize(11).height(32).backgroundColor(Theme.TRANSPARENT)
+              .fontColor(Theme.FRP_TOML_TEXT).onClick(() => this.copyLog(config))
+            Button('清空').fontSize(11).height(32).backgroundColor(Theme.TRANSPARENT)
+              .fontColor(Theme.FRP_TOML_TEXT).onClick(() => this.clearLog(config))
+          }.width('100%')
+          if (this.latestLogs(config, this.renderTick).length === 0) {
+            Text('暂无日志').fontSize(12).fontColor(Theme.FRP_TOML_TEXT).width('100%')
+          } else {
+            ForEach(this.latestLogs(config, this.renderTick), (entry: FrpLogEntry) => {
+              Text(this.logText(entry)).fontSize(12).fontFamily('monospace')
+                .fontColor(entry.level === 'ERROR' ? Theme.DARK_DANGER : Theme.FRP_TOML_TEXT)
+                .width('100%').copyOption(CopyOptions.LocalDevice)
+            }, (entry: FrpLogEntry, index?: number) => `${entry.timestamp}-${index}-${entry.message}`)
+          }
+        }.width('100%').padding(12).backgroundColor(Theme.FRP_TOML_BG)
+        .borderRadius(Theme.FRP_INPUT_RADIUS).alignItems(HorizontalAlign.Start)
+      }
+    }
+    .width('100%').padding(12).backgroundColor(Theme.FRP_CARD_BG)
+    .border({ width: 1, color: Theme.FRP_BORDER }).borderRadius(Theme.FRP_CARD_RADIUS)
+    .margin({ top: 10 }).alignItems(HorizontalAlign.Start)
+  }
+
+  @Builder
+  private ConfigGroup(title: string, type: FrpType) {
+    // 在更新闭包内读取 @State，避免按值传入数组后仍持有 reload 前的快照。
+    if ((type === FrpType.FRPC ? this.frpcConfigs : this.frpsConfigs).length > 0) {
       Column() {
         Text(title)
           .fontSize(14)
@@ -516,9 +540,9 @@ export struct FrpTab {
           .fontColor(Theme.PRIMARY)
           .width('100%')
           .margin({ top: 16, bottom: 2 })
-        ForEach(configs, (config: FrpConfig) => {
+        ForEach(type === FrpType.FRPC ? this.frpcConfigs : this.frpsConfigs, (config: FrpConfig) => {
           this.ConfigCard(config)
-        }, (config: FrpConfig) => `${config.key}-${this.renderTick}`)
+        }, (config: FrpConfig) => config.key)
       }
       .width('100%')
       .alignItems(HorizontalAlign.Start)
@@ -600,27 +624,6 @@ export struct FrpTab {
           .fontWeight(FontWeight.Medium)
           .fontColor(Theme.TEXT_PRIMARY)
           .layoutWeight(1)
-        Text('刷新')
-          .fontSize(14)
-          .fontColor(Theme.PRIMARY)
-          .padding(8)
-          .onClick(() => {
-            this.userRefresh();
-          })
-        Text('新建')
-          .fontSize(14)
-          .fontColor(Theme.PRIMARY)
-          .padding({ left: 8, top: 8, bottom: 8 })
-          .onClick(() => {
-            this.onNew();
-          })
-        Text('导入')
-          .fontSize(14)
-          .fontColor(Theme.PRIMARY)
-          .padding({ left: 8, right: 4, top: 8, bottom: 8 })
-          .onClick(() => {
-            this.onImport();
-          })
       }
       .width('100%')
       .padding({ left: 16, right: 12, top: 12, bottom: 4 })
@@ -633,8 +636,8 @@ export struct FrpTab {
           this.StatusSummary()
           Scroll() {
             Column() {
-              this.ConfigGroup('frpc 客户端', this.frpcConfigs)
-              this.ConfigGroup('frps 服务端', this.frpsConfigs)
+              this.ConfigGroup('frpc 客户端', FrpType.FRPC)
+              this.ConfigGroup('frps 服务端', FrpType.FRPS)
             }
             .width('100%')
             .padding({ left: 12, right: 12, bottom: 24 })

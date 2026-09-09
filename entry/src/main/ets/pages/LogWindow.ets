@@ -9,6 +9,7 @@ import { Theme } from '../common/Theme';
 import { R } from '../common/Res';
 import { GP } from '../common/GP';
 import { VpnStatus } from '../core/VpnStatus';
+import { VpnLogIdentity } from '../core/VpnLogArchive';
 import { LogItem, LogLevel, logLevelName } from '../core/LogItem';
 import { Format } from '../common/Format';
 import { VpnController } from '../vpn/VpnController';
@@ -18,6 +19,11 @@ import { pasteboard } from '@kit.BasicServicesKit';
 @Entry
 @Component
 struct LogWindow {
+  @State profileUuid: string = '';
+  @State sessionId: string = '';
+  @State sessions: VpnLogIdentity[] = [];
+  @State historyVisible: boolean = false;
+  @State scopeLabel: string = '';
   @State optionsVisible: boolean = false;
   @State logLevel: number = 1;
   @State timeFormat: number = 1;
@@ -30,6 +36,11 @@ struct LogWindow {
   private timerId: number = -1;
 
   aboutToAppear(): void {
+    let params = router.getParams() as Record<string, Object>;
+    this.profileUuid = typeof params?.['profileUuid'] === 'string' ? params['profileUuid'] as string : '';
+    this.sessionId = this.profileUuid !== '' && typeof params?.['sessionId'] === 'string' ?
+      params['sessionId'] as string : '';
+    VpnStatus.restoreFromSnapshot();
     this.logLevel = GP_getInt('verbositylevel', 1);
     this.timeFormat = GP_getInt('logtimeformat', 1);
     this.refresh();
@@ -47,7 +58,11 @@ struct LogWindow {
   }
 
   private refresh(): void {
-    let all = VpnStatus.getlogbuffer();
+    this.sessions = VpnStatus.getLogSessions(this.profileUuid);
+    let profile = ProfileManager.get(this.profileUuid);
+    this.scopeLabel = this.profileUuid === '' ? '全局诊断 · 所有配置及旧无归属日志' :
+      `${profile === undefined ? this.profileUuid : profile.getName()} · ${this.sessionId === '' ? '最近会话' : this.sessionId}`;
+    let all = VpnStatus.getlogbuffer(this.profileUuid, this.sessionId);
     let shown: LogItem[] = [];
     for (let li of all) {
       let v = li.getVerbosityLevel();
@@ -87,8 +102,9 @@ struct LogWindow {
   }
 
   private sendLog(): void {
+    VpnStatus.restoreFromSnapshot();
     let lines: string[] = [];
-    for (let li of VpnStatus.getlogbuffer()) {
+    for (let li of VpnStatus.getlogbuffer(this.profileUuid, this.sessionId)) {
       let iso = Format.formatTime(li.logtime, 2);
       lines.push(`${iso} ${logLevelName(li.level)} ${li.message}`);
     }
@@ -100,9 +116,17 @@ struct LogWindow {
   }
 
   private clearLog(): void {
-    VpnStatus.clearLog();
-    VpnStatus.logMessage(LogLevel.INFO, R.s('log_cleared'));
-    this.refresh();
+    AlertDialog.show({
+      title: this.profileUuid === '' ? '清空全部 OpenVPN 日志' : '清空此配置全部日志',
+      message: this.profileUuid === '' ? '包括所有配置历史及全局诊断日志。不会停止连接。' :
+        '清空此配置所有会话（含历史），不影响其他配置和全局诊断。不会停止连接，后续日志会继续出现。',
+      primaryButton: { value: R.s('cancel'), action: () => {} },
+      secondaryButton: { value: '清空', action: () => {
+        let ok = VpnStatus.clearLog(this.profileUuid);
+        promptAction.showToast({ message: ok ? R.s('log_cleared') : '清空失败，请稍后重试' });
+        this.refresh();
+      } }
+    });
   }
 
   private disconnectVpn(): void {
@@ -112,7 +136,7 @@ struct LogWindow {
   }
 
   private editVpn(): void {
-    let uuid = ProfileManager.getLastConnectedProfile();
+    let uuid = this.profileUuid || ProfileManager.getLastConnectedProfile();
     if (uuid === undefined || uuid === null) {
       promptAction.showToast({ message: R.s('log_no_last_vpn') });
       return;
@@ -169,7 +193,9 @@ struct LogWindow {
           .width(22).height(22).fillColor(Color.White)
           .margin({ left: 12 })
           .onClick(() => {
-            this.disconnectVpn();
+            if (this.profileUuid === '' || this.profileUuid === VpnStatus.getLastConnectedVPNProfile()) {
+              this.disconnectVpn();
+            }
           })
         Image($r('app.media.ic_edit'))
           .width(22).height(22).fillColor(Color.White)
@@ -182,6 +208,33 @@ struct LogWindow {
       .height(56)
       .backgroundColor(Theme.PRIMARY)
       .alignItems(VerticalAlign.Center)
+
+      Text(this.scopeLabel).fontSize(12).width('100%').padding(8)
+      Text(this.profileUuid === '' ? '复制 / 清空：全部日志' : '复制：所选会话；清空：此配置全部历史')
+        .fontSize(11).width('100%').padding({ left: 8, bottom: 4 })
+      if (this.profileUuid !== '') {
+        Row() {
+          Button('最近会话').fontSize(12).onClick(() => { this.sessionId = ''; this.refresh(); })
+          Button('历史会话').fontSize(12).onClick(() => { this.historyVisible = !this.historyVisible; })
+          Button('全局诊断').fontSize(12).onClick(() => {
+            router.pushUrl({ url: 'pages/LogWindow' });
+          })
+        }
+        if (this.historyVisible) {
+          List() {
+            ForEach(this.sessions, (session: VpnLogIdentity) => {
+              ListItem() {
+                Text(`${new Date(session.startedAt).toLocaleString()} · ${session.sessionId}`)
+                  .fontSize(11).padding(8).onClick(() => {
+                    this.sessionId = session.sessionId;
+                    this.historyVisible = false;
+                    this.refresh();
+                  })
+              }
+            }, (session: VpnLogIdentity) => session.sessionId)
+          }.width('100%').height(140)
+        }
+      }
 
       // ---- Options panel ----
       if (this.optionsVisible) {
@@ -251,7 +304,7 @@ struct LogWindow {
       }
 
       // ---- Status line ----
-      Text(this.speedStatus)
+      Text(this.profileUuid === '' ? this.speedStatus : '下方状态与流量为当前全局连接，不代表所选历史会话')
         .fontSize(14)
         .fontColor(Theme.TEXT_PRIMARY)
         .width('100%')

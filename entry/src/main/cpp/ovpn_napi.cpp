@@ -77,10 +77,10 @@ bool g_tun_pending = false; // tun_establish_req emitted, answer not yet deliver
 
 ClientAPI::OpenVPNClient *g_client = nullptr;
 
-void emit(std::string type, std::string name, std::string info,
+void emit(napi_threadsafe_function callback, std::string type, std::string name, std::string info,
           bool error = false, bool fatal = false)
 {
-    if (g_tsfn == nullptr) {
+    if (callback == nullptr) {
         return;
     }
     EvMsg *m = new EvMsg;
@@ -89,12 +89,14 @@ void emit(std::string type, std::string name, std::string info,
     m->info = std::move(info);
     m->error = error;
     m->fatal = fatal;
-    napi_call_threadsafe_function(g_tsfn, m, napi_tsfn_nonblocking);
+    if (napi_call_threadsafe_function(callback, m, napi_tsfn_nonblocking) != napi_ok) {
+        delete m;
+    }
 }
 
-void emit_event(const ClientAPI::Event &ev)
+void emit_event(napi_threadsafe_function callback, const ClientAPI::Event &ev)
 {
-    if (g_tsfn == nullptr) {
+    if (callback == nullptr) {
         return;
     }
     EvMsg *m = new EvMsg;
@@ -113,12 +115,15 @@ void emit_event(const ClientAPI::Event &ev)
             m->dynamicChallengeCookie = ev.info;
         }
     }
-    napi_call_threadsafe_function(g_tsfn, m, napi_tsfn_nonblocking);
+    if (napi_call_threadsafe_function(callback, m, napi_tsfn_nonblocking) != napi_ok) {
+        delete m;
+    }
 }
 
 void call_js(napi_env env, napi_value js_cb, void * /*context*/, void *data)
 {
     EvMsg *m = static_cast<EvMsg *>(data);
+    if (env == nullptr || js_cb == nullptr) { delete m; return; }
     napi_value undefined;
     napi_get_undefined(env, &undefined);
     napi_value obj;
@@ -155,6 +160,17 @@ void call_js(napi_env env, napi_value js_cb, void * /*context*/, void *data)
 
 class NapiClient : public ClientAPI::OpenVPNClient {
   public:
+    const napi_threadsafe_function callback;
+    explicit NapiClient(napi_threadsafe_function cb) : callback(cb) {
+        if (callback) napi_acquire_threadsafe_function(callback);
+    }
+    ~NapiClient() override {
+        if (callback) napi_release_threadsafe_function(callback, napi_tsfn_release);
+    }
+    void emit(std::string type, std::string name, std::string info,
+              bool error = false, bool fatal = false) {
+        ::emit(callback, std::move(type), std::move(name), std::move(info), error, fatal);
+    }
     // Collected tun builder parameters, forwarded to ArkTS for VpnConfig.
     std::vector<std::string> addrs;         // "addr/prefix"
     std::vector<std::string> routes;        // "addr/prefix"
@@ -181,7 +197,7 @@ class NapiClient : public ClientAPI::OpenVPNClient {
         } else {
             g_client_ready = true;
         }
-        emit_event(ev);
+        emit_event(callback, ev);
     }
 
     void acc_event(const ClientAPI::AppCustomControlMessageEvent &) override
@@ -569,7 +585,7 @@ napi_value StartTunnel(napi_env env, napi_callback_info info)
         }
         g_running = true;
     }
-    auto *client = new NapiClient();
+    auto *client = new NapiClient(g_tsfn);
     {
         std::lock_guard<std::mutex> lock(g_client_mtx);
         g_client = client;
@@ -587,7 +603,7 @@ napi_value StartTunnel(napi_env env, napi_callback_info info)
 
     ClientAPI::EvalConfig eval = client->eval_config(config);
     if (eval.error) {
-        emit("log", "", "eval_config error: " + eval.message);
+        client->emit("log", "", "eval_config error: " + eval.message);
         {
             std::lock_guard<std::mutex> lock(g_client_mtx);
             delete client;
@@ -617,7 +633,7 @@ napi_value StartTunnel(napi_env env, napi_callback_info info)
         creds.dynamicChallengeCookie = dynamicChallengeCookie;
         ClientAPI::Status st = client->provide_creds(creds);
         if (st.error) {
-            emit("log", "", "provide_creds error: " + st.message);
+            client->emit("log", "", "provide_creds error: " + st.message);
             {
                 std::lock_guard<std::mutex> lock(g_client_mtx);
                 delete client;
@@ -644,7 +660,7 @@ napi_value StartTunnel(napi_env env, napi_callback_info info)
         auto *c = client;
         ClientAPI::Status st = c->connect();
         g_client_ready = false;
-        emit("done", st.error ? "error" : "ok", st.message, st.error);
+        c->emit("done", st.error ? "error" : "ok", st.message, st.error);
         {
             std::lock_guard<std::mutex> lock(g_client_mtx);
             delete c;

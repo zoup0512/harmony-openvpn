@@ -62,6 +62,9 @@ export class LogItem {
   message: string;
   logtime: number;
   verbosityLevel: number;
+  profileUuid: string = '';
+  sessionId: string = '';
+  sessionStartedAt: number = 0;
 
   constructor(level: LogLevel, message: string, verbosityLevel: number = -1) {
     this.level = level;
@@ -82,7 +85,10 @@ export class LogItem {
       'level': this.level as number,
       'message': this.message,
       'logtime': this.logtime,
-      'verbosityLevel': this.verbosityLevel
+      'verbosityLevel': this.verbosityLevel,
+      'profileUuid': this.profileUuid,
+      'sessionId': this.sessionId,
+      'sessionStartedAt': this.sessionStartedAt
     };
   }
 
@@ -90,6 +96,12 @@ export class LogItem {
     let li = new LogItem(logLevelByValue((o['level'] as number) ?? 2),
       (o['message'] as string) ?? '', (o['verbosityLevel'] as number) ?? -1);
     li.logtime = (o['logtime'] as number) ?? Date.now();
+    if (typeof o['profileUuid'] === 'string' && typeof o['sessionId'] === 'string' &&
+      o['profileUuid'] !== '' && o['sessionId'] !== '') {
+      li.profileUuid = o['profileUuid'] as string;
+      li.sessionId = o['sessionId'] as string;
+      li.sessionStartedAt = typeof o['sessionStartedAt'] === 'number' ? o['sessionStartedAt'] as number : li.logtime;
+    }
     return li;
   }
 }

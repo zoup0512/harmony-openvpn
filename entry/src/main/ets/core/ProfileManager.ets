@@ -159,6 +159,7 @@ export class ProfileManager {
     ProfileManager.ensureLoaded();
     ProfileManager.profiles.delete(profile.getUUID());
     VpnTrafficStore.removeProfile(profile.getUUID());
+    VpnStatus.clearLog(profile.getUUID());
     try {
       let path = `${context.filesDir}/${profile.getUUID()}.json`;
       if (fs.accessSync(path)) {

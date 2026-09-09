@@ -10,6 +10,9 @@ import hilog from '@ohos.hilog';
 import { FileUtil } from '../common/FileUtil';
 import { Context } from '@kit.AbilityKit';
 import { VpnTrafficStore } from './VpnTrafficStore';
+import { VpnLogStore } from './VpnLogStore';
+import { VpnLogIdentity, redactVpnLog } from './VpnLogArchive';
+import { util } from '@kit.ArkTS';
 
 export type StateListener = (level: ConnectionStatus, cleanMessage: string, logItem: LogItem) => void;
 export type LogListener = (logItem: LogItem) => void;
@@ -18,7 +21,8 @@ export type ByteCountListener = (inBytes: number, outBytes: number, diffIn: numb
 export class VpnStatus {
   static readonly MAXLOGENTRIES: number = 1000;
 
-  private static logbuffer: LogItem[] = [];
+  private static activeSessionId: string = '';
+  private static sessionClock: number = 0;
   private static logListeners: LogListener[] = [];
   private static stateListeners: StateListener[] = [];
   private static byteCountListeners: ByteCountListener[] = [];
@@ -44,15 +48,33 @@ export class VpnStatus {
   static setPersistenceContext(ctx: Context, snapshotWriter: boolean = false): void {
     VpnStatus.persistCtx = ctx;
     VpnStatus.snapshotWriter = snapshotWriter;
+    VpnLogStore.setContext(ctx);
   }
 
-  static getlogbuffer(): LogItem[] {
-    return VpnStatus.logbuffer;
+  static beginLogSession(uuid: string): VpnSessionLogger {
+    VpnStatus.sessionClock = Math.max(Date.now(), VpnStatus.sessionClock + 1);
+    let identity = new VpnLogIdentity(uuid, util.generateRandomUUID(true), VpnStatus.sessionClock);
+    VpnStatus.activeSessionId = identity.sessionId;
+    VpnLogStore.begin(identity);
+    return new VpnSessionLogger(identity);
   }
 
-  static clearLog(): void {
-    VpnStatus.logbuffer = [];
+  static isCurrentSession(identity: VpnLogIdentity): boolean {
+    return VpnStatus.activeSessionId === identity.sessionId;
+  }
+
+  static getlogbuffer(uuid: string = '', sessionId: string = ''): LogItem[] {
+    return VpnLogStore.read(uuid, sessionId);
+  }
+
+  static getLogSessions(uuid: string): VpnLogIdentity[] {
+    return VpnLogStore.history(uuid);
+  }
+
+  static clearLog(uuid: string = ''): boolean {
+    let cleared = VpnLogStore.clear(uuid);
     VpnStatus.revision++;
+    return cleared;
   }
 
   static isVPNActive(): boolean {
@@ -116,8 +138,13 @@ export class VpnStatus {
   // Logging / state updates
   // ------------------------------------------------------------------
 
-  static logMessage(level: LogLevel, message: string): void {
-    let li = new LogItem(level, message);
+  static logMessage(level: LogLevel, message: string, identity?: VpnLogIdentity): void {
+    let li = new LogItem(level, redactVpnLog(message));
+    if (identity !== undefined) {
+      li.profileUuid = identity.profileUuid;
+      li.sessionId = identity.sessionId;
+      li.sessionStartedAt = identity.startedAt;
+    }
     VpnStatus.insertLogItem(li);
   }
 
@@ -126,11 +153,9 @@ export class VpnStatus {
   }
 
   static insertLogItem(li: LogItem): void {
+    li.message = redactVpnLog(li.message);
     VpnStatus.toHilog(li);
-    VpnStatus.logbuffer.push(li);
-    if (VpnStatus.logbuffer.length > VpnStatus.MAXLOGENTRIES + 500) {
-      VpnStatus.logbuffer = VpnStatus.logbuffer.slice(500);
-    }
+    VpnLogStore.append(li);
     VpnStatus.revision++;
     for (let l of VpnStatus.logListeners) {
       l(li);
@@ -166,7 +191,12 @@ export class VpnStatus {
     }
   }
 
-  static updateStateString(state: string, cleanMessage: string, level?: ConnectionStatus): void {
+  static updateStateString(state: string, cleanMessage: string, level?: ConnectionStatus, identity?: VpnLogIdentity): void {
+    cleanMessage = redactVpnLog(cleanMessage);
+    if (identity !== undefined && !VpnStatus.isCurrentSession(identity)) {
+      VpnStatus.logMessage(LogLevel.INFO, `[state] ${state}: ${cleanMessage}`, identity);
+      return;
+    }
     let lvl: ConnectionStatus;
     if (level !== undefined) {
       lvl = level;
@@ -189,6 +219,11 @@ export class VpnStatus {
     VpnStatus.lastCleanMessage = cleanMessage;
 
     let li = new LogItem(VpnStatus.levelToLogLevel(lvl), `[state] ${state}: ${cleanMessage}`);
+    if (identity !== undefined) {
+      li.profileUuid = identity.profileUuid;
+      li.sessionId = identity.sessionId;
+      li.sessionStartedAt = identity.startedAt;
+    }
     VpnStatus.insertLogItem(li);
 
     for (let l of VpnStatus.stateListeners) {
@@ -305,11 +340,6 @@ export class VpnStatus {
       if (path === '') {
         return;
       }
-      let logs: Object[] = [];
-      let start = Math.max(0, VpnStatus.logbuffer.length - 200);
-      for (let i = start; i < VpnStatus.logbuffer.length; i++) {
-        logs.push(VpnStatus.logbuffer[i].toJson());
-      }
       let last = VpnStatus.trafficHistory.lastSecond();
       let snapshotTimestamp = Date.now();
       let snap: Record<string, Object> = {
@@ -319,7 +349,7 @@ export class VpnStatus {
         'lastState': VpnStatus.lastState,
         'lastCleanMessage': VpnStatus.lastCleanMessage,
         'connectedVPNProfile': VpnStatus.connectedVPNProfile === undefined ? '' : VpnStatus.connectedVPNProfile,
-        'logs': logs,
+        'logArchiveVersion': 1,
         'inBytes': last !== undefined && last !== null ? last.inBytes : 0,
         'outBytes': last !== undefined && last !== null ? last.outBytes : 0
       };
@@ -331,6 +361,7 @@ export class VpnStatus {
 
   /** Reads the snapshot written by another process and merges it if newer. */
   static restoreFromSnapshot(): boolean {
+    VpnLogStore.refresh();
     try {
       let path = VpnStatus.snapshotPath();
       if (path === '' || !fs.accessSync(path)) {
@@ -358,16 +389,36 @@ export class VpnStatus {
         isFinite(inBytes) && isFinite(outBytes) && inBytes >= 0 && outBytes >= 0) {
         VpnStatus.trafficHistory.add(inBytes, outBytes);
       }
-      let logs = o['logs'] as Object[];
-      if (logs !== undefined && logs !== null && logs.length > 0) {
-        VpnStatus.logbuffer = [];
-        for (let lo of logs) {
-          VpnStatus.logbuffer.push(LogItem.fromJson(lo as Record<string, Object>));
-        }
-      }
       return true;
     } catch (e) {
       return false;
     }
+  }
+}
+
+/** Per-attempt logger; safe to capture across awaits, native events and timers. */
+export class VpnSessionLogger {
+  readonly identity: VpnLogIdentity;
+  private secrets: string[] = [];
+  constructor(identity: VpnLogIdentity) {
+    this.identity = identity;
+  }
+  protectSecrets(values: string[]): void {
+    this.secrets = this.secrets.concat(values.filter((value: string) => value !== '')).slice(-16);
+  }
+  private safeMessage(message: string): string {
+    for (let secret of this.secrets) {
+      message = message.split(secret).join('[redacted]');
+    }
+    return message;
+  }
+  logMessage(level: LogLevel, message: string): void {
+    VpnStatus.logMessage(level, this.safeMessage(message), this.identity);
+  }
+  updateStateString(state: string, message: string, level?: ConnectionStatus): void {
+    VpnStatus.updateStateString(state, this.safeMessage(message), level, this.identity);
+  }
+  isCurrent(): boolean {
+    return VpnStatus.isCurrentSession(this.identity);
   }
 }

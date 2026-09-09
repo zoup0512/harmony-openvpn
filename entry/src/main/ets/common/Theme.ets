@@ -52,6 +52,13 @@ export class Theme {
   static readonly FRP_ACTION_BG: string = '#E7F5F0';
   static readonly FRP_DANGER: string = '#D92D20';
   static readonly FRP_DANGER_BG: string = '#FDECEB';
+  static readonly FRP_LIST_TEXT_PRIMARY: string = '#1F2329';
+  static readonly FRP_LIST_TEXT_SECONDARY: string = '#6B7280';
+  static readonly FRP_LIST_DANGER: string = '#EF4444';
+  static readonly FRP_LOG_BG: string = '#0F1115';
+  static readonly FRP_FILTER_SELECTED_BG: string = '#C0F2E7';
+  static readonly FRP_LOG_TEXT: string = '#969BA2';
+  static readonly FRP_LOG_WARNING: string = '#F59E0B';
   static readonly FRP_TOML_BG: string = '#101513';
   static readonly FRP_TOML_TEXT: string = '#63D6A7';
   static readonly FRP_CARD_RADIUS: number = 16;

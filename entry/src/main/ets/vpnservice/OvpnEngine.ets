@@ -3,7 +3,7 @@ import * as ovpnexec from 'libovpnexec.so';
 import type { OvpnNativeEvent, OvpnStartResult, OvpnTunStats } from 'libovpnexec.so';
 import { AuthChallengeManager, parseAccessServerCrv1 } from '../core/AuthChallenge';
 import { VpnController, PendingAuthChallenge } from '../vpn/VpnController';
-import { VpnStatus } from '../core/VpnStatus';
+import { VpnStatus, VpnSessionLogger } from '../core/VpnStatus';
 import { LogLevel, ConnectionStatus } from '../core/LogItem';
 
 interface TunRequest {
@@ -58,6 +58,7 @@ class DynamicChallengeDetails {
 }
 
 export class OvpnEngine {
+  readonly logger: VpnSessionLogger;
   private connection?: vpnExtension.VpnConnection;
   private stopped: boolean = false;
   private preserveChallengeOnDone: boolean = false;
@@ -65,26 +66,43 @@ export class OvpnEngine {
   private onDone?: () => void;
   private statsTimer: number = -1;
 
-  constructor(context: vpnExtension.VpnExtensionContext, onDone?: () => void) {
+  constructor(context: vpnExtension.VpnExtensionContext, logger: VpnSessionLogger, onDone?: () => void) {
     this.vpnContext = context;
+    this.logger = logger;
     this.onDone = onDone;
   }
 
   async start(profile: EngineOptions): Promise<void> {
     this.stopped = false;
+    this.logger.protectSecrets([profile.password, profile.response, profile.dynamicChallengeCookie]);
+
+
+    this.connection = vpnExtension.createVpnConnection(this.vpnContext);
+    await this.connection.protectProcessNet();
+    if (this.stopped || !this.logger.isCurrent()) {
+      throw new Error('Connection attempt superseded');
+    }
     ovpnexec.attach((event: OvpnNativeEvent): void => {
+      if (this.stopped || !this.logger.isCurrent()) {
+        if (event.type === 'log') {
+          this.logger.logMessage(LogLevel.DEBUG, `[OpenVPN3] ${event.info}`);
+        } else if (event.type === 'event' || event.type === 'done') {
+          this.logger.logMessage(LogLevel.INFO, `[OpenVPN3 late] ${event.type}: ${event.name}`);
+        }
+        return;
+      }
       if (event.type === 'log') {
-        VpnStatus.logMessage(LogLevel.DEBUG, `[OpenVPN3] ${event.info}`);
+        this.logger.logMessage(LogLevel.DEBUG, `[OpenVPN3] ${event.info}`);
       } else if (event.type === 'event') {
         this.handleNativeEvent(event);
       } else if (event.type === 'tun_establish_req') {
         this.establishTun(event.info).catch((err: Error) => {
           console.error(`[OpenVPN3] TUN creation failed: ${err.message}`);
-          ovpnexec.resolveTunEstablish(-1);
+          if (!this.stopped && this.logger.isCurrent()) { ovpnexec.resolveTunEstablish(-1); }
         });
       } else if (event.type === 'done') {
         let finishedInfo: string = this.preserveChallengeOnDone ? 'authentication challenge pending' : event.info;
-        VpnStatus.logMessage(event.error ? LogLevel.ERROR : LogLevel.INFO,
+        this.logger.logMessage(event.error ? LogLevel.ERROR : LogLevel.INFO,
           `[OpenVPN3] finished: ${event.name} ${finishedInfo}`);
         this.stopStatsPolling();
         if (this.preserveChallengeOnDone) {
@@ -96,7 +114,7 @@ export class OvpnEngine {
         // OpenVPN3 may report DISCONNECTED/EXITING and a final connect status
         // after AUTH_FAILED; those messages are usually generic or empty.
         if (!this.isAuthenticationFailureState()) {
-          VpnStatus.updateStateString('NOPROCESS', event.info === '' ? 'Disconnected' : event.info);
+          this.logger.updateStateString('NOPROCESS', event.info === '' ? 'Disconnected' : event.info);
         }
         // The core stopped itself (server disconnect, transport error, auth
         // failure): nobody calls stop() for this engine, so the system VPN
@@ -108,9 +126,6 @@ export class OvpnEngine {
         }
       }
     });
-
-    this.connection = vpnExtension.createVpnConnection(this.vpnContext);
-    await this.connection.protectProcessNet();
     let result: OvpnStartResult = ovpnexec.startTunnel(profile);
     if (!result.ok) {
       throw new Error(result.error);
@@ -131,6 +146,7 @@ export class OvpnEngine {
   }
 
   async stop(): Promise<void> {
+    this.logger.logMessage(LogLevel.INFO, 'Stopping OpenVPN connection.');
     this.stopped = true;
     this.preserveChallengeOnDone = false;
     this.stopStatsPolling();
@@ -150,12 +166,12 @@ export class OvpnEngine {
     if (conn === undefined) {
       return;
     }
-    VpnStatus.logMessage(LogLevel.DEBUG, 'Destroying system VPN connection (TUN teardown).');
+    this.logger.logMessage(LogLevel.DEBUG, 'Destroying system VPN connection (TUN teardown).');
     try {
       await conn.destroy();
     } catch (e) {
       // No TUN exists yet — nothing to tear down.
-      VpnStatus.logMessage(LogLevel.DEBUG, 'TUN destroy found no active VPN connection (expected before connect).');
+      this.logger.logMessage(LogLevel.DEBUG, 'TUN destroy found no active VPN connection (expected before connect).');
     }
   }
 
@@ -171,7 +187,7 @@ export class OvpnEngine {
           VpnStatus.updateByteCount(stats.bytesIn, stats.bytesOut);
         }
       } catch (e) {
-        VpnStatus.logMessage(LogLevel.DEBUG, '[OpenVPN3] failed to read TUN statistics');
+        this.logger.logMessage(LogLevel.DEBUG, '[OpenVPN3] failed to read TUN statistics');
       }
     }, 1000) as number;
   }
@@ -192,7 +208,7 @@ export class OvpnEngine {
       this.handleInfoEvent(event);
       return;
     }
-    VpnStatus.logMessage(event.error ? LogLevel.ERROR : LogLevel.INFO,
+    this.logger.logMessage(event.error ? LogLevel.ERROR : LogLevel.INFO,
       `[OpenVPN3 event] ${event.name}: ${this.eventInfoForLog(event)}`);
     this.applyEventState(event);
   }
@@ -219,7 +235,7 @@ export class OvpnEngine {
     let nativeEvent = event as NativeDynamicChallengeEvent;
     if (nativeEvent.dynamicChallenge !== undefined) {
       let pending = new PendingAuthChallenge();
-      pending.uuid = VpnStatus.getLastConnectedVPNProfile();
+      pending.uuid = this.logger.identity.profileUuid;
       pending.kind = 'dynamic';
       pending.challenge = details.challenge;
       pending.echo = details.echo;
@@ -229,16 +245,9 @@ export class OvpnEngine {
       VpnController.writePendingAuthChallenge(pending);
     }
 
-    VpnStatus.logMessage(event.error ? LogLevel.ERROR : LogLevel.WARNING,
+    this.logger.logMessage(event.error ? LogLevel.ERROR : LogLevel.WARNING,
       `[OpenVPN3 event] DYNAMIC_CHALLENGE: ${this.challengeSummaryText(details)}`);
-    // The challenge text is shown to the user in the dialog anyway; log it
-    // (truncated) so captures reveal what the server actually asked for.
-    if (details.challenge !== '') {
-      let text = details.challenge.length > 120 ?
-        details.challenge.substring(0, 117) + '...' : details.challenge;
-      VpnStatus.logMessage(LogLevel.INFO, `[OpenVPN3] challenge text: ${text}`);
-    }
-    VpnStatus.updateStateString('USER_INPUT', 'Waiting for dynamic authentication challenge response',
+    this.logger.updateStateString('USER_INPUT', 'Waiting for dynamic authentication challenge response',
       ConnectionStatus.LEVEL_WAITING_FOR_USER_INPUT);
   }
 
@@ -278,7 +287,7 @@ export class OvpnEngine {
 
   private handleInfoEvent(event: OvpnNativeEvent): void {
     if (!event.info.startsWith('CR_TEXT:')) {
-      VpnStatus.logMessage(event.error ? LogLevel.ERROR : LogLevel.INFO,
+      this.logger.logMessage(event.error ? LogLevel.ERROR : LogLevel.INFO,
         `[OpenVPN3 event] INFO: ${event.info}`);
       this.applyEventState(event);
       return;
@@ -294,16 +303,16 @@ export class OvpnEngine {
       responseRequired: true
     });
     let pending = new PendingAuthChallenge();
-    pending.uuid = VpnStatus.getLastConnectedVPNProfile();
+    pending.uuid = this.logger.identity.profileUuid;
     pending.kind = 'cr_text';
     pending.challenge = prompt;
     pending.echo = false;
     pending.responseRequired = true;
     pending.expiresAt = Date.now() + 120000;
     VpnController.writePendingAuthChallenge(pending);
-    VpnStatus.logMessage(event.error ? LogLevel.ERROR : LogLevel.WARNING,
+    this.logger.logMessage(event.error ? LogLevel.ERROR : LogLevel.WARNING,
       `[OpenVPN3 event] INFO CR_TEXT: responseApiAvailable=${responseApiAvailable}, promptPresent=${prompt !== ''}`);
-    VpnStatus.updateStateString('USER_INPUT', 'Waiting for text authentication challenge response',
+    this.logger.updateStateString('USER_INPUT', 'Waiting for text authentication challenge response',
       ConnectionStatus.LEVEL_WAITING_FOR_USER_INPUT);
   }
 
@@ -325,33 +334,33 @@ export class OvpnEngine {
       case 'CONNECTED':
         this.preserveChallengeOnDone = false;
         AuthChallengeManager.clear();
-        VpnStatus.updateStateString('CONNECTED', event.info, ConnectionStatus.LEVEL_CONNECTED);
+        this.logger.updateStateString('CONNECTED', event.info, ConnectionStatus.LEVEL_CONNECTED);
         break;
       case 'AUTH_FAILED':
         this.preserveChallengeOnDone = false;
         AuthChallengeManager.clear();
-        VpnStatus.updateStateString('AUTH_FAILED', event.info === '' ? 'Authentication failed' : event.info,
+        this.logger.updateStateString('AUTH_FAILED', event.info === '' ? 'Authentication failed' : event.info,
           ConnectionStatus.LEVEL_AUTH_FAILED);
         break;
       case 'CONNECTING':
       case 'WAITING_FOR_CONNECTION':
-        VpnStatus.updateStateString('CONNECTING', event.info, ConnectionStatus.LEVEL_CONNECTING_NO_SERVER_REPLY_YET);
+        this.logger.updateStateString('CONNECTING', event.info, ConnectionStatus.LEVEL_CONNECTING_NO_SERVER_REPLY_YET);
         break;
       case 'WAIT':
       case 'RECONNECTING':
-        VpnStatus.updateStateString(event.name, event.info, ConnectionStatus.LEVEL_CONNECTING_NO_SERVER_REPLY_YET);
+        this.logger.updateStateString(event.name, event.info, ConnectionStatus.LEVEL_CONNECTING_NO_SERVER_REPLY_YET);
         break;
       case 'AUTH_PENDING':
         this.preserveChallengeOnDone = true;
-        VpnStatus.updateStateString(event.name, event.info, ConnectionStatus.LEVEL_CONNECTING_SERVER_REPLIED);
+        this.logger.updateStateString(event.name, event.info, ConnectionStatus.LEVEL_CONNECTING_SERVER_REPLIED);
         break;
       case 'GET_CONFIG':
-        VpnStatus.updateStateString(event.name, event.info, ConnectionStatus.LEVEL_CONNECTING_SERVER_REPLIED);
+        this.logger.updateStateString(event.name, event.info, ConnectionStatus.LEVEL_CONNECTING_SERVER_REPLIED);
         break;
       case 'SESSION_EXPIRED':
         this.preserveChallengeOnDone = false;
         AuthChallengeManager.clear();
-        VpnStatus.updateStateString('SESSION_EXPIRED', 'Authentication session expired',
+        this.logger.updateStateString('SESSION_EXPIRED', 'Authentication session expired',
           ConnectionStatus.LEVEL_AUTH_FAILED);
         break;
       case 'CONNECTION_TIMEOUT':
@@ -366,7 +375,7 @@ export class OvpnEngine {
         this.preserveChallengeOnDone = false;
         AuthChallengeManager.clear();
         if (!this.isAuthenticationFailureState()) {
-          VpnStatus.updateStateString('NOPROCESS', event.info === '' ? event.name : event.info,
+          this.logger.updateStateString('NOPROCESS', event.info === '' ? event.name : event.info,
             ConnectionStatus.LEVEL_NOTCONNECTED);
         }
         break;
@@ -379,7 +388,7 @@ export class OvpnEngine {
         // USER_INPUT status instead of flipping to NOPROCESS.
         AuthChallengeManager.clear();
         if (!this.isAuthenticationFailureState() && !this.preserveChallengeOnDone) {
-          VpnStatus.updateStateString('NOPROCESS', event.info, ConnectionStatus.LEVEL_NOTCONNECTED);
+          this.logger.updateStateString('NOPROCESS', event.info, ConnectionStatus.LEVEL_NOTCONNECTED);
         }
         break;
       default:
@@ -417,7 +426,7 @@ export class OvpnEngine {
     if (addresses.length === 0) {
       throw new Error('OpenVPN3 did not provide a TUN address');
     }
-    VpnStatus.logMessage(LogLevel.DEBUG,
+    this.logger.logMessage(LogLevel.DEBUG,
       `TUN request: addresses=${request.addresses ?? ''}, routes=${request.routes ?? ''}, ` +
       `excludeRoutes=${request.excludeRoutes ?? ''}, dns=${request.dnsServers ?? ''}, ` +
       `searchDomains=${request.searchDomains ?? ''}, mtu=${request.mtu ?? 0}, ` +
@@ -506,10 +515,10 @@ export class OvpnEngine {
         await conn.destroy();
       } catch (e) {
       }
-      ovpnexec.resolveTunEstablish(-1);
+      // stopTunnel already released the old handshake; do not resolve a newer run.
       return;
     }
-    VpnStatus.logMessage(LogLevel.INFO, `TUN established (fd=${fd}, ${routeInfos.length} routes).`);
+    this.logger.logMessage(LogLevel.INFO, `TUN established (fd=${fd}, ${routeInfos.length} routes).`);
     ovpnexec.resolveTunEstablish(fd);
   }
 

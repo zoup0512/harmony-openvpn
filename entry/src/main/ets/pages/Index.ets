@@ -1,8 +1,7 @@
 /**
  * Main page — replicates MainActivity: toolbar + the VPN profile list.
- * Traffic statistics, the log window and the about/FAQ page open as pages
- * from the toolbar. The general settings entry is hidden while the settings
- * page has no effective options.
+ * The about/FAQ page opens as a separate page from the toolbar. The general
+ * settings entry is hidden while the settings page has no effective options.
  */
 
 import { router, promptAction } from '@kit.ArkUI';
@@ -14,6 +13,7 @@ import { ImportSourceDialog } from '../components/dialogs/ImportSourceDialog';
 import { ProfilesTab } from '../components/tabs/ProfilesTab';
 import { FrpTab } from '../components/tabs/FrpTab';
 import { FrpTemplateDialog } from '../components/dialogs/FrpTemplateDialog';
+import { FrpEntryDialog } from '../components/dialogs/FrpEntryDialog';
 import { FrpConfigTemplate, FrpTemplateManager } from '../core/FrpTemplateManager';
 import { FrpConfig } from '../core/FrpConfig';
 import { FrpConfigManager } from '../core/FrpConfigManager';
@@ -68,6 +68,19 @@ struct Index {
     builder: FrpTemplateDialog({
       onSelected: (type: FrpType, template?: FrpConfigTemplate) => {
         this.openNewFrpConfig(type, template);
+      }
+    }),
+    autoCancel: true,
+    customStyle: true,
+    alignment: DialogAlignment.Center
+  });
+  private frpEntryDialogController: CustomDialogController = new CustomDialogController({
+    builder: FrpEntryDialog({
+      onImport: () => {
+        this.importFrpConfig();
+      },
+      onNew: () => {
+        this.showFrpTemplates();
       }
     }),
     autoCancel: true,
@@ -275,6 +288,10 @@ struct Index {
     this.frpTemplateDialogController.open();
   }
 
+  private showFrpEntry(): void {
+    this.frpEntryDialogController.open();
+  }
+
   private startFrp(config: FrpConfig): Promise<void> {
     return FrpController.start(config);
   }
@@ -295,36 +312,18 @@ struct Index {
           .padding({ left: 16 })
 
         if (this.activeFeature === 0) {
-          Image($r('app.media.ic_import'))
+          Image($r('app.media.ic_add'))
             .width(24).height(24).fillColor(Color.White)
             .margin({ left: 16 })
             .onClick(() => {
               this.showImportChoices();
-            })
-          Image($r('app.media.ic_chart'))
-            .width(24).height(24).fillColor(Color.White)
-            .margin({ left: 16 })
-            .onClick(() => {
-              router.pushUrl({ url: 'pages/TrafficStats' });
-            })
-          Image($r('app.media.ic_receipt'))
-            .width(24).height(24).fillColor(Color.White)
-            .margin({ left: 16 })
-            .onClick(() => {
-              router.pushUrl({ url: 'pages/LogWindow' });
             })
         } else {
           Image($r('app.media.ic_add'))
             .width(24).height(24).fillColor(Color.White)
             .margin({ left: 16 })
             .onClick(() => {
-              this.showFrpTemplates();
-            })
-          Image($r('app.media.ic_import'))
-            .width(24).height(24).fillColor(Color.White)
-            .margin({ left: 16 })
-            .onClick(() => {
-              this.importFrpConfig();
+              this.showFrpEntry();
             })
         }
 
